@@ -4,140 +4,134 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated to navy blue primary theme with complementary colors */
-  --background: oklch(0.05 0.02 240);
-  /* Deep navy background */
-  --foreground: oklch(0.95 0.01 240);
-  /* Light blue-white text */
-  --card: oklch(0.08 0.02 240);
-  /* Slightly lighter navy for cards */
-  --card-foreground: oklch(0.95 0.01 240);
+  /* Updated to use #0c111d as primary background with 70-20-10 color rule */
+  --background: #0c111d;
+  /* 70% - Primary dark blue background */
+  --foreground: #e2e8f0;
+  /* Light text for contrast */
+  --card: #1a2332;
+  /* 70% - Slightly lighter card background */
+  --card-foreground: #cbd5e1;
   /* Light text on cards */
-  --popover: oklch(0.08 0.02 240);
-  /* Navy popover */
-  --popover-foreground: oklch(0.95 0.01 240);
+  --popover: #1e293b;
+  /* 70% - Popover background */
+  --popover-foreground: #cbd5e1;
   /* Light text on popovers */
-  --primary: oklch(0.45 0.15 240);
-  /* Navy blue primary */
-  --primary-foreground: oklch(0.95 0.01 240);
-  /* Light text on primary */
-  --secondary: oklch(0.65 0.25 280);
-  /* Purple accent */
-  --secondary-foreground: oklch(0.95 0.01 240);
-  /* Light text on secondary */
-  --muted: oklch(0.12 0.02 240);
-  /* Muted navy */
-  --muted-foreground: oklch(0.7 0.01 240);
-  /* Muted light text */
-  --accent: oklch(0.6 0.2 200);
-  /* Cyan accent */
-  --accent-foreground: oklch(0.05 0.02 240);
-  /* Dark text on accent */
-  --destructive: oklch(0.55 0.25 15);
-  /* Red for destructive actions */
-  --destructive-foreground: oklch(0.95 0.01 240);
-  /* Light text on destructive */
-  --border: oklch(0.15 0.02 240);
-  /* Navy border */
-  --input: oklch(0.08 0.02 240);
-  /* Navy input background */
-  --ring: oklch(0.6 0.2 200 / 0.5);
-  /* Cyan focus ring */
-  --chart-1: oklch(0.6 0.2 200);
+  --primary: #3b82f6;
+  /* 20% - Primary blue accent */
+  --primary-foreground: #ffffff;
+  /* White text on primary */
+  --secondary: #1e40af;
+  /* 20% - Darker blue for secondary */
+  --secondary-foreground: #ffffff;
+  /* White text on secondary */
+  --muted: #1e293b;
+  /* 70% - Muted background */
+  --muted-foreground: #64748b;
+  /* Muted text */
+  --accent: #06b6d4;
+  /* 10% - Cyan accent for highlights */
+  --accent-foreground: #ffffff;
+  /* White text on accent */
+  --destructive: #ef4444;
+  /* 10% - Red for destructive actions */
+  --destructive-foreground: #ffffff;
+  /* White text on destructive */
+  --border: #334155;
+  /* Subtle border */
+  --input: #1e293b;
+  /* Input background */
+  --ring: #3b82f6;
+  /* Focus ring */
+  --chart-1: #3b82f6;
+  /* Primary blue for charts */
+  --chart-2: #06b6d4;
   /* Cyan for charts */
-  --chart-2: oklch(0.65 0.25 280);
-  /* Purple for charts */
-  --chart-3: oklch(0.65 0.25 30);
-  /* Orange for charts */
-  --chart-4: oklch(0.55 0.25 15);
+  --chart-3: #f59e0b;
+  /* Amber for charts */
+  --chart-4: #ef4444;
   /* Red for charts */
-  --chart-5: oklch(0.7 0.01 240);
-  /* Light gray for charts */
+  --chart-5: #8b5cf6;
+  /* Purple for charts */
   --radius: 0.5rem;
-  --sidebar: oklch(0.08 0.02 240);
-  /* Navy sidebar */
-  --sidebar-foreground: oklch(0.95 0.01 240);
+  --sidebar: #1a2332;
+  /* 70% - Sidebar background */
+  --sidebar-foreground: #cbd5e1;
   /* Light sidebar text */
-  --sidebar-primary: oklch(0.45 0.15 240);
-  /* Navy sidebar primary */
-  --sidebar-primary-foreground: oklch(0.95 0.01 240);
-  /* Light text on sidebar primary */
-  --sidebar-accent: oklch(0.6 0.2 200);
-  /* Cyan sidebar accent */
-  --sidebar-accent-foreground: oklch(0.05 0.02 240);
-  /* Dark text on sidebar accent */
-  --sidebar-border: oklch(0.15 0.02 240);
-  /* Navy sidebar border */
-  --sidebar-ring: oklch(0.6 0.2 200 / 0.5);
-  /* Cyan sidebar focus ring */
+  --sidebar-primary: #3b82f6;
+  /* 20% - Primary blue */
+  --sidebar-primary-foreground: #ffffff;
+  /* White text */
+  --sidebar-accent: #06b6d4;
+  /* 10% - Cyan accent */
+  --sidebar-accent-foreground: #ffffff;
+  /* White text */
+  --sidebar-border: #334155;
+  /* Sidebar border */
+  --sidebar-ring: #3b82f6;
+  /* Focus ring */
+
+  /* Added success color for positive indicators */
+  --success: #10b981;
+  /* 10% - Green for success states */
+  --success-foreground: #ffffff;
+  /* White text on success */
+
+  /* Added warning color */
+  --warning: #f59e0b;
+  /* 10% - Amber for warnings */
+  --warning-foreground: #ffffff;
+  /* White text on warning */
 }
 
 .dark {
-  /* Dark mode maintains navy theme with slightly different values */
-  --background: oklch(0.03 0.02 240);
-  /* Even darker navy background */
-  --foreground: oklch(0.98 0.01 240);
-  /* Brighter light text */
-  --card: oklch(0.06 0.02 240);
-  /* Darker navy cards */
-  --card-foreground: oklch(0.98 0.01 240);
-  /* Brighter text on cards */
-  --popover: oklch(0.06 0.02 240);
-  /* Darker navy popover */
-  --popover-foreground: oklch(0.98 0.01 240);
-  /* Brighter text on popovers */
-  --primary: oklch(0.5 0.18 240);
-  /* Brighter navy for dark mode */
-  --primary-foreground: oklch(0.98 0.01 240);
-  /* Bright text on primary */
-  --secondary: oklch(0.7 0.28 280);
-  /* Brighter purple for dark mode */
-  --secondary-foreground: oklch(0.03 0.02 240);
-  /* Dark text on secondary */
-  --muted: oklch(0.1 0.02 240);
-  /* Darker muted navy */
-  --muted-foreground: oklch(0.75 0.01 240);
-  /* Brighter muted text */
-  --accent: oklch(0.65 0.22 200);
-  /* Brighter cyan accent */
-  --accent-foreground: oklch(0.03 0.02 240);
-  /* Dark text on accent */
-  --destructive: oklch(0.6 0.3 15);
-  /* Brighter red for dark mode */
-  --destructive-foreground: oklch(0.98 0.01 240);
-  /* Bright text on destructive */
-  --border: oklch(0.12 0.02 240);
-  /* Darker navy border */
-  --input: oklch(0.06 0.02 240);
-  /* Darker navy input */
-  --ring: oklch(0.65 0.22 200 / 0.5);
-  /* Brighter cyan focus ring */
-  --chart-1: oklch(0.65 0.22 200);
+  /* Dark mode uses even darker variants of the base color */
+  --background: #0a0f1a;
+  /* Even darker for dark mode */
+  --foreground: #f1f5f9;
+  /* Brighter text */
+  --card: #151b26;
+  /* Darker cards */
+  --card-foreground: #e2e8f0;
+  /* Bright text */
+  --popover: #1a2332;
+  /* Darker popover */
+  --popover-foreground: #e2e8f0;
+  /* Bright text */
+  --primary: #60a5fa;
+  /* Brighter blue for dark mode */
+  --primary-foreground: #ffffff;
+  /* White text */
+  --secondary: #2563eb;
+  /* Brighter secondary blue */
+  --secondary-foreground: #ffffff;
+  /* White text */
+  --muted: #1a2332;
+  /* Darker muted */
+  --muted-foreground: #64748b;
+  /* Muted text */
+  --accent: #22d3ee;
   /* Brighter cyan */
-  --chart-2: oklch(0.7 0.28 280);
-  /* Brighter purple */
-  --chart-3: oklch(0.7 0.28 30);
-  /* Brighter orange */
-  --chart-4: oklch(0.6 0.3 15);
+  --accent-foreground: #ffffff;
+  /* White text */
+  --destructive: #f87171;
   /* Brighter red */
-  --chart-5: oklch(0.75 0.01 240);
-  /* Brighter gray */
-  --sidebar: oklch(0.05 0.02 240);
-  /* Darker navy sidebar */
-  --sidebar-foreground: oklch(0.98 0.01 240);
-  /* Bright sidebar text */
-  --sidebar-primary: oklch(0.5 0.18 240);
-  /* Brighter navy sidebar primary */
-  --sidebar-primary-foreground: oklch(0.98 0.01 240);
-  /* Bright text on sidebar primary */
-  --sidebar-accent: oklch(0.1 0.02 240);
-  /* Darker navy sidebar accent */
-  --sidebar-accent-foreground: oklch(0.98 0.01 240);
-  /* Bright text on sidebar accent */
-  --sidebar-border: oklch(0.12 0.02 240);
-  /* Darker navy sidebar border */
-  --sidebar-ring: oklch(0.65 0.22 200 / 0.5);
-  /* Brighter cyan sidebar focus ring */
+  --destructive-foreground: #ffffff;
+  /* White text */
+  --border: #334155;
+  /* Darker border */
+  --input: #1a2332;
+  /* Darker input */
+  --ring: #60a5fa;
+  /* Bright focus ring */
+  --success: #34d399;
+  /* Brighter green */
+  --success-foreground: #ffffff;
+  /* White text */
+  --warning: #fbbf24;
+  /* Brighter amber */
+  --warning-foreground: #ffffff;
+  /* White text */
 }
 
 @theme inline {
@@ -165,6 +159,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -177,7 +175,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  /* Added font family configuration for Fontsource */
   --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: "Montserrat", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -190,6 +187,68 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Updated scrollbar styling to match new color scheme */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+}
+
+/* Updated utility classes for new color scheme */
+@layer utilities {
+  .glass-effect {
+    @apply bg-card/80 backdrop-blur-sm border border-border/50;
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+  }
+
+  .gradient-success {
+    background: linear-gradient(135deg, var(--success) 0%, var(--accent) 100%);
+  }
+
+  .gradient-warning {
+    background: linear-gradient(135deg, var(--warning) 0%, var(--destructive) 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-success {
+    background: linear-gradient(135deg, var(--success) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-warning {
+    background: linear-gradient(135deg, var(--warning) 0%, var(--destructive) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

@@ -1,8 +1,8 @@
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Navigation } from "../../Navigation"
-import { ChevronLeft, ChevronRight, Upload, Copy, RefreshCw } from "lucide-react"
+import { ChevronLeft, ChevronRight, Upload, Copy, RefreshCw, X } from "lucide-react"
 
 const AI_TOKEN_DATA = [
   {
@@ -86,6 +86,7 @@ interface TokenData {
   addLiquidity: boolean
   baseTokenAmount: string
   quoteTokenAmount: string
+  boostVisibility: boolean
 }
 
 interface PaymentModalProps {
@@ -93,6 +94,7 @@ interface PaymentModalProps {
   onClose: () => void
   step: "payment" | "transaction"
   tokenData: TokenData
+  totalCost: number
   onProceedToPayment: () => void
   onCheckTransaction: () => void
 }
@@ -102,13 +104,34 @@ const PaymentModal = ({
   onClose,
   step,
   tokenData,
+  totalCost,
   onProceedToPayment,
   onCheckTransaction,
 }: PaymentModalProps) => {
   const [transactionSignature, setTransactionSignature] = useState("")
-  const [timeLeft, setTimeLeft] = useState(840) // 14:00 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(900) // 15 minutes in seconds
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [isOpen])
+
+  const resetTimer = () => {
+    setTimeLeft(900) // Reset to 15 minutes
+  }
 
   if (!isOpen) return null
 
@@ -177,16 +200,21 @@ const PaymentModal = ({
             </div>
             <span className="text-white font-semibold">SecPay</span>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
-            <RefreshCw className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={resetTimer} className="text-slate-400 hover:text-white p-1 rounded" title="Reset Timer">
+              <RefreshCw className="w-5 h-5" />
+            </button>
+            <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded" title="Close">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {step === "payment" ? (
           <>
             <div className="mb-6">
               <p className="text-slate-400 text-sm mb-2">Payment amount</p>
-              <p className="text-white text-2xl font-bold">1.000000 SOL</p>
+              <p className="text-white text-2xl font-bold">{totalCost.toFixed(6)} SOL</p>
             </div>
 
             <div className="flex items-center gap-2 mb-6">
@@ -243,7 +271,7 @@ const PaymentModal = ({
             <div className="mb-6">
               <p className="text-slate-400 text-sm mb-2">Payment amount</p>
               <div className="flex items-center gap-2">
-                <p className="text-white text-2xl font-bold">1.000000 SOL</p>
+                <p className="text-white text-2xl font-bold">{totalCost.toFixed(6)} SOL</p>
                 <button className="text-slate-400 hover:text-white">
                   <Copy className="w-4 h-4" />
                 </button>
@@ -259,7 +287,7 @@ const PaymentModal = ({
             <div className="mb-4">
               <label className="text-slate-400 text-sm mb-2 block">Send to this address</label>
               <div className="bg-slate-700 rounded-lg p-3 flex items-center justify-between">
-                <span className="text-green-400 text-sm font-mono">od1nhsGkZXfFAU16f3DyabJ8Mw7UK2cmRsZEqGmPFMy</span>
+                <span className="text-green-400 text-sm font-mono">GPChfdeBeFc4UWQTuYWMxa5FyfwVJGTedx1AnQdAxuJN</span>
                 <button className="text-slate-400 hover:text-white">
                   <Copy className="w-4 h-4" />
                 </button>
@@ -301,7 +329,7 @@ const PaymentModal = ({
             <div className="text-center">
               <p className="text-slate-400 text-xs">Encrypted & Secure Payment</p>
               <p className="text-slate-400 text-xs">
-                By paying you agree to our <span className="text-blue-400 underline">terms of service</span>
+                By paying you agree to our <a href="/terms" className="text-blue-400 underline">terms of service</a>
               </p>
             </div>
           </>
@@ -317,6 +345,7 @@ export default function CreateToken () {
   const [paymentStep, setPaymentStep] = useState<"payment" | "transaction">("payment")
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [currentAiIndex, setCurrentAiIndex] = useState(0)
+  const [formErrors, setFormErrors] = useState<string[]>([])
   const [tokenData, setTokenData] = useState<TokenData>({
     name: "",
     symbol: "",
@@ -333,7 +362,16 @@ export default function CreateToken () {
     addLiquidity: false,
     baseTokenAmount: "900000000",
     quoteTokenAmount: "1",
+    boostVisibility: false,
   })
+
+  const calculateTotalCost = () => {
+    let baseCost = 0.25 // Base cost
+    if (tokenData.boostVisibility) {
+      baseCost += 0.15 // Boost visibility cost
+    }
+    return baseCost
+  }
 
   const steps = [
     { number: 1, title: "Token Info", completed: currentStep > 1 },
@@ -341,7 +379,37 @@ export default function CreateToken () {
     { number: 3, title: "Review & Create", completed: false },
   ]
 
+  const validateCurrentStep = () => {
+    const errors: string[] = []
+
+    if (currentStep === 1) {
+      if (!tokenData.name.trim()) errors.push("Token name is required")
+      if (!tokenData.symbol.trim()) errors.push("Token symbol is required")
+      if (!tokenData.description.trim()) errors.push("Token description is required")
+      if (!tokenData.totalSupply.trim()) errors.push("Total supply is required")
+    }
+
+    if (currentStep === 2) {
+      if (tokenData.customCreator && !tokenData.creatorAddress.trim()) {
+        errors.push("Creator address is required when custom creator is enabled")
+      }
+      if (tokenData.addLiquidity) {
+        const quoteAmount = Number.parseFloat(tokenData.quoteTokenAmount)
+        if (isNaN(quoteAmount) || quoteAmount < calculateTotalCost() || quoteAmount > 100) {
+          errors.push(`Quote token amount must be between ${calculateTotalCost().toFixed(2)} and 100 SOL`)
+        }
+      }
+    }
+
+    setFormErrors(errors)
+    return errors.length === 0
+  }
+
   const handleNext = () => {
+    if (!validateCurrentStep()) {
+      return
+    }
+
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     } else {
@@ -353,6 +421,7 @@ export default function CreateToken () {
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
+      setFormErrors([]) // Clear errors when going back
     }
   }
 
@@ -361,6 +430,25 @@ export default function CreateToken () {
   }
 
   const handleCheckTransaction = () => {
+    const newToken = {
+      name: tokenData.name,
+      symbol: tokenData.symbol,
+      totalSupply: tokenData.totalSupply,
+      decimals: tokenData.decimals,
+      description: tokenData.description,
+      iconUrl: tokenData.iconUrl,
+      createdAt: new Date().toISOString(),
+    }
+
+    try {
+      const existingTokens = JSON.parse(localStorage.getItem("createdTokens") || "[]")
+      const updatedTokens = [...existingTokens, newToken]
+      localStorage.setItem("createdTokens", JSON.stringify(updatedTokens))
+      console.log("Token saved to portfolio successfully!")
+    } catch (error) {
+      console.error("Error saving token to storage:", error)
+    }
+
     console.log("Transaction verified successfully!")
     // Here you would typically show success message or redirect
   }
@@ -368,7 +456,8 @@ export default function CreateToken () {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setTokenData({ ...tokenData, icon: file })
+      const imageUrl = URL.createObjectURL(file)
+      setTokenData({ ...tokenData, icon: file, iconUrl: imageUrl })
     }
   }
 
@@ -430,6 +519,17 @@ export default function CreateToken () {
           {/* Main Form */}
           <div className="lg:col-span-2">
             <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+              {formErrors.length > 0 && (
+                <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg">
+                  <h4 className="text-red-400 font-semibold mb-2">Please fix the following errors:</h4>
+                  <ul className="text-red-400 text-sm space-y-1">
+                    {formErrors.map((error, index) => (
+                      <li key={index}>• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {currentStep === 1 && (
                 <>
                   <h2 className="text-2xl font-bold text-white mb-6">Step 1: Token Info</h2>
@@ -514,35 +614,36 @@ export default function CreateToken () {
 
                   <div className="mb-8">
                     <label className="text-slate-300 text-sm mb-2 block">Token Icon</label>
-                    <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
-                      {tokenData.iconUrl ? (
-                        <div className="flex flex-col items-center">
-                          <img
-                            src={tokenData.iconUrl || "/placeholder.svg"}
-                            alt="Token icon"
-                            className="w-16 h-16 rounded-full mb-4"
-                          />
-                          <p className="text-green-400 mb-2">AI Generated Icon</p>
-                          <p className="text-slate-400 text-sm">Click to upload a different image</p>
-                        </div>
-                      ) : (
-                        <>
-                          <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                          <p className="text-blue-400 mb-2">Click to upload or drag and drop</p>
-                          <p className="text-slate-400 text-sm">PNG, JPG, up to 10MB</p>
-                        </>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        id="icon-upload"
-                      />
-                      <label htmlFor="icon-upload" className="cursor-pointer">
-                        <span className="sr-only">Upload file</span>
-                      </label>
-                    </div>
+                    <label htmlFor="icon-upload" className="cursor-pointer">
+                      <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-slate-500 transition-colors">
+                        {tokenData.iconUrl ? (
+                          <div className="flex flex-col items-center">
+                            <img
+                              src={tokenData.iconUrl || "/placeholder.svg"}
+                              alt="Token icon"
+                              className="w-16 h-16 rounded-full mb-4 object-cover"
+                            />
+                            <p className="text-green-400 mb-2">
+                              {tokenData.icon ? "Custom Image Uploaded" : "AI Generated Icon"}
+                            </p>
+                            <p className="text-slate-400 text-sm">Click to upload a different image</p>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                            <p className="text-blue-400 mb-2">Click to upload or drag and drop</p>
+                            <p className="text-slate-400 text-sm">PNG, JPG, up to 10MB</p>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="icon-upload"
+                    />
                   </div>
                 </>
               )}
@@ -550,7 +651,7 @@ export default function CreateToken () {
               {currentStep === 2 && (
                 <>
                   <div className="text-center mb-8">
-                    <div className="text-4xl font-bold text-blue-400 mb-2">1.00 SOL</div>
+                    <div className="text-4xl font-bold text-blue-400 mb-2">{calculateTotalCost().toFixed(2)} SOL</div>
                     <div className="text-slate-400">Total Cost</div>
                   </div>
 
@@ -647,7 +748,7 @@ export default function CreateToken () {
 
                     {tokenData.customCreator && (
                       <div>
-                        <label className="text-slate-300 text-sm mb-2 block">Creator Address</label>
+                        <label className="text-slate-300 text-sm mb-2 block">Creator Address *</label>
                         <input
                           type="text"
                           value={tokenData.creatorAddress}
@@ -657,6 +758,32 @@ export default function CreateToken () {
                         />
                       </div>
                     )}
+
+                    <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg border-2 border-yellow-600">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center">
+                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                          </div>
+                          <h3 className="text-white font-semibold">Boost Visibility</h3>
+                          <span className="text-yellow-400 text-xs bg-yellow-600/20 px-2 py-1 rounded-full">
+                            +0.15 SOL
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-sm">
+                          Increase your token's visibility and reach more potential investors.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tokenData.boostVisibility}
+                          onChange={(e) => setTokenData({ ...tokenData, boostVisibility: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
+                      </label>
+                    </div>
 
                     <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
                       <div>
@@ -683,8 +810,12 @@ export default function CreateToken () {
                       <div className="space-y-4">
                         <div>
                           <div className="flex justify-between items-center mb-2">
-                            <label className="text-slate-300 text-sm">Base Token amount (CHRP)</label>
-                            <span className="text-slate-400 text-xs">Available: 1,000,000,000 MAX</span>
+                            <label className="text-slate-300 text-sm">
+                              Base Token amount ({tokenData.symbol || "TOKEN"})
+                            </label>
+                            <span className="text-slate-400 text-xs">
+                              Available: {tokenData.totalSupply.toLocaleString()} MAX
+                            </span>
                           </div>
                           <input
                             type="text"
@@ -697,7 +828,9 @@ export default function CreateToken () {
                         <div>
                           <div className="flex justify-between items-center mb-2">
                             <label className="text-slate-300 text-sm">Quote Token amount (SOL)</label>
-                            <span className="text-slate-400 text-xs">Min: 0.3 SOL | Max: 100 SOL</span>
+                            <span className="text-slate-400 text-xs">
+                              Min: {calculateTotalCost().toFixed(2)} SOL | Max: 100 SOL
+                            </span>
                           </div>
                           <input
                             type="text"
@@ -719,11 +852,11 @@ export default function CreateToken () {
                   <div className="space-y-4 mb-8">
                     <div className="flex justify-between">
                       <span className="text-slate-400">Name:</span>
-                      <span className="text-white">{tokenData.name || "ChirpCoin"}</span>
+                      <span className="text-white">{tokenData.name || "Token Name"}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Symbol:</span>
-                      <span className="text-white">{tokenData.symbol || "CHRP"}</span>
+                      <span className="text-white">{tokenData.symbol || "SYMBOL"}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Total Supply:</span>
@@ -745,6 +878,12 @@ export default function CreateToken () {
                           .join(", ")}
                       </span>
                     </div>
+                    {tokenData.boostVisibility && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Boost Visibility:</span>
+                        <span className="text-yellow-400">Enabled (+0.15 SOL)</span>
+                      </div>
+                    )}
                     {tokenData.addLiquidity && (
                       <div className="flex justify-between">
                         <span className="text-slate-400">Initial Liquidity:</span>
@@ -756,18 +895,18 @@ export default function CreateToken () {
                   <div className="bg-slate-700 rounded-lg p-4 mb-8">
                     <div className="flex justify-between items-center">
                       <span className="text-xl font-bold text-white">Total Cost:</span>
-                      <span className="text-2xl font-bold text-blue-400">1.00 SOL</span>
+                      <span className="text-2xl font-bold text-blue-400">{calculateTotalCost().toFixed(2)} SOL</span>
                     </div>
                   </div>
                 </>
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between">
+              <div className="flex justify-between my-6">
                 <button
                   onClick={handlePrevious}
                   disabled={currentStep === 1}
-                  className="flex items-center gap-2 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
@@ -775,7 +914,7 @@ export default function CreateToken () {
 
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors cursor-pointer"
                 >
                   {currentStep === 3 ? "Create Token" : "Next"}
                   {currentStep !== 3 && <ChevronRight className="w-4 h-4" />}
@@ -816,6 +955,10 @@ export default function CreateToken () {
                   <span className="text-slate-400">Decimals:</span>
                   <span className="text-white">{tokenData.decimals}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Total Cost:</span>
+                  <span className="text-blue-400 font-bold">{calculateTotalCost().toFixed(2)} SOL</span>
+                </div>
               </div>
 
               {tokenData.description && (
@@ -841,6 +984,9 @@ export default function CreateToken () {
                       Revoke Update Authority
                     </span>
                   )}
+                  {tokenData.boostVisibility && (
+                    <span className="px-3 py-1 bg-yellow-600 text-white text-xs rounded-full">Boost Visibility</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -853,6 +999,7 @@ export default function CreateToken () {
         onClose={() => setShowPaymentModal(false)}
         step={paymentStep}
         tokenData={tokenData}
+        totalCost={calculateTotalCost()}
         onProceedToPayment={handleProceedToPayment}
         onCheckTransaction={handleCheckTransaction}
       />
