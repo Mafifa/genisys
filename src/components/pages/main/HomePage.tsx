@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Navigation } from "../../Navigation"
@@ -158,7 +156,8 @@ const HomePage: React.FC = () => {
 
       {bannerVisible && (
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 text-center text-sm relative">
-          <span>⚡ Limited Time Offer: Token creation is now FREE! Don't miss out on launching your project.</span>
+          <span className="block sm:inline">⚡ Limited Time Offer: Token creation is now FREE!</span>
+          <span className="block sm:inline sm:ml-1">Don't miss out on launching your project.</span>
           <button
             onClick={() => setBannerVisible(false)}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 transition-colors"
@@ -168,34 +167,36 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-24">
-          <div className="space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16 sm:mb-20 lg:mb-24">
+          <div className="space-y-6 text-center lg:text-left">
             <div className="space-y-2">
-              <h1 className="text-5xl md:text-5xl lg:text-6xl font-black text-foreground leading-tight tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-foreground leading-tight tracking-tight">
                 Create SPL Tokens <span className="text-gradient">In Seconds</span>
               </h1>
-              <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
+              <p className="text-base sm:text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0 leading-relaxed">
                 Deploy Solana tokens instantly with our advanced AI-powered token creator. No coding required, just
                 point, click, and launch.
               </p>
             </div>
 
-            <a className="pt-4" href="/create">
-              <button className="gradient-primary text-primary-foreground px-10 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/25 cursor-pointer">
-                Create Token Now →
-              </button>
-            </a>
+            <div className="pt-4">
+              <a href="/create">
+                <button className="gradient-primary text-primary-foreground px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/25 cursor-pointer w-full sm:w-auto">
+                  Create Token Now →
+                </button>
+              </a>
+            </div>
 
-            <div className="grid grid-cols-3 gap-6 pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 sm:pt-8">
               <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
-                <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent cursor-pointer">
+                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent cursor-pointer">
                   <AnimatedCounter key={tokensCreated} end={tokensCreated} duration={3000} suffix="+" />
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">Tokens Created</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Tokens Created</p>
               </div>
               <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent cursor-pointer">
+                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent cursor-pointer">
                   <AnimatedCounter
                     key={totalLiquidity}
                     end={totalLiquidity}
@@ -205,34 +206,34 @@ const HomePage: React.FC = () => {
                     duration={3000}
                   />
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">Total Liquidity</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Liquidity</p>
               </div>
               <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
-                <div className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent cursor-pointer">
+                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent cursor-pointer">
                   <AnimatedCounter key={volume24h} end={volume24h} decimals={1} prefix="$" suffix="K" duration={3000} />
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">24H Volume</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">24H Volume</p>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-center lg:justify-end">
-            <div className="glass-effect rounded-2xl p-8 max-w-md w-full shadow-xl hover:shadow-primary/10 transition-all duration-500">
+          <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
+            <div className="glass-effect rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-xl hover:shadow-primary/10 transition-all duration-500">
               <div className="flex items-center space-x-2 mb-6">
                 <div className="w-3 h-3 bg-destructive rounded-full"></div>
                 <div className="w-3 h-3 bg-warning rounded-full"></div>
                 <div className="w-3 h-3 bg-success rounded-full"></div>
               </div>
               <div className="flex items-center space-x-4 mb-8">
-                <div className="w-14 h-14 gradient-accent rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-accent-foreground text-2xl">🚀</span>
+                <div className="w-12 sm:w-14 h-12 sm:h-14 gradient-accent rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-accent-foreground text-xl sm:text-2xl">🚀</span>
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-foreground text-lg">MOON ROCKET</p>
-                  <p className="text-muted-foreground">$MOON</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-foreground text-base sm:text-lg truncate">MOON ROCKET</p>
+                  <p className="text-muted-foreground text-sm">$MOON</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-foreground text-lg">100,000,000</p>
+                  <p className="font-bold text-foreground text-base sm:text-lg">100,000,000</p>
                   <p className="text-xs text-muted-foreground">To the moon!</p>
                 </div>
               </div>
@@ -247,15 +248,17 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* Why Choose Genisys Section */}
-        <section className="mb-32">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-foreground mb-6">Why Choose Genisys?</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+        <section className="mb-20 sm:mb-24 lg:mb-32">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground mb-4 sm:mb-6">
+              Why Choose Genisys?
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
               Professional token creation tools with enterprise-grade security and seamless deployment on Solana.
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 icon: "⚡",
@@ -290,44 +293,48 @@ const HomePage: React.FC = () => {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="glass-effect rounded-2xl p-8 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
+                className="glass-effect rounded-2xl p-6 sm:p-8 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
               >
-                <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl">{feature.icon}</span>
+                <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-xl sm:text-2xl">{feature.icon}</span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-4">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">{feature.title}</h3>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* Customer Tokens Section */}
-        <div className="glass-effect rounded-3xl p-10 mb-32 shadow-xl">
-          <h3 className="text-4xl font-black text-foreground mb-6 text-center">Tokens Made by Our Customers</h3>
-          <p className="text-muted-foreground mb-12 text-center max-w-2xl mx-auto text-lg">
+        <div className="glass-effect rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 mb-20 sm:mb-24 lg:mb-32 shadow-xl">
+          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-foreground mb-4 sm:mb-6 text-center">
+            Tokens Made by Our Customers
+          </h3>
+          <p className="text-muted-foreground mb-8 sm:mb-12 text-center max-w-2xl mx-auto text-base sm:text-lg px-4">
             Real tokens created with Genisys. From moon shots to rug pulls, we've seen it all.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {customerTokens.map((token, index) => (
               <div
                 key={index}
-                className="bg-muted/30 rounded-2xl p-8 border border-border hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
+                className="bg-muted/30 rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-border hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                      <span className="text-primary-foreground font-bold text-lg">{token.symbol.slice(0, 2)}</span>
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                    <div className="w-12 sm:w-14 h-12 sm:h-14 gradient-primary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
+                      <span className="text-primary-foreground font-bold text-base sm:text-lg">
+                        {token.symbol.slice(0, 2)}
+                      </span>
                     </div>
-                    <div>
-                      <p className="font-bold text-foreground text-lg">{token.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-foreground text-base sm:text-lg truncate">{token.name}</p>
                       <p className="text-sm text-muted-foreground font-semibold">{token.symbol}</p>
                     </div>
                   </div>
-                  <div className={`text-lg font-black ${token.color}`}>{token.change}</div>
+                  <div className={`text-base sm:text-lg font-black ${token.color} flex-shrink-0`}>{token.change}</div>
                 </div>
 
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-sm text-muted-foreground font-semibold">Volume</span>
                     <span className={`text-sm font-bold ${token.trend === "up" ? "text-success" : "text-destructive"}`}>
@@ -343,27 +350,19 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3 text-base">
+                <div className="space-y-3 text-sm sm:text-base">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground font-semibold">Vol:</span>
                     <span className="font-bold text-foreground">
                       $
-                      <AnimatedCounter
-                        key={`${token.symbol}-vol-${token.volume}`}
-                        end={token.volume}
-                        duration={2000}
-                      />
+                      <AnimatedCounter key={`${token.symbol}-vol-${token.volume}`} end={token.volume} duration={2000} />
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground font-semibold">MCap:</span>
                     <span className="font-bold text-foreground">
                       $
-                      <AnimatedCounter
-                        key={`${token.symbol}-mcap-${token.mcap}`}
-                        end={token.mcap}
-                        duration={2000}
-                      />
+                      <AnimatedCounter key={`${token.symbol}-mcap-${token.mcap}`} end={token.mcap} duration={2000} />
                     </span>
                   </div>
                 </div>
@@ -373,12 +372,17 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* CTA Section */}
-        <section className="gradient-primary backdrop-blur-sm rounded-3xl px-10 py-20 text-center border border-primary/20 shadow-2xl">
-          <h2 className="text-4xl md:text-5xl font-black text-primary-foreground mb-8">Ready to Launch Your Token?</h2>
-          <p className="text-xl text-primary-foreground/80 mb-12 max-w-2xl mx-auto leading-relaxed">
+        <section className="gradient-primary backdrop-blur-sm rounded-2xl sm:rounded-3xl px-6 sm:px-8 lg:px-10 py-12 sm:py-16 lg:py-20 text-center border border-primary/20 shadow-2xl">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-primary-foreground mb-6 sm:mb-8">
+            Ready to Launch Your Token?
+          </h2>
+          <p className="text-base sm:text-lg lg:text-xl text-primary-foreground/80 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed px-4">
             Join thousands of projects that trust Genisys for their token creation needs.
           </p>
-          <a href="/create" className="rounded-2xl gradient-accent px-16 py-6 text-xl font-bold text-accent-foreground transition-all duration-300 hover:shadow-2xl hover:shadow-accent/30 transform hover:scale-105 border border-accent/30">
+          <a
+            href="/create"
+            className="inline-block rounded-xl sm:rounded-2xl gradient-accent px-10 sm:px-16 py-4 sm:py-6 text-lg sm:text-xl font-bold text-accent-foreground transition-all duration-300 hover:shadow-2xl hover:shadow-accent/30 transform hover:scale-105 border border-accent/30"
+          >
             Get Started Now →
           </a>
         </section>

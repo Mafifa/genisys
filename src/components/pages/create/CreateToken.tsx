@@ -2,13 +2,14 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Navigation } from "../../Navigation"
-import { ChevronLeft, ChevronRight, Upload, Copy, RefreshCw, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Upload, Copy, X } from "lucide-react"
 
 const AI_TOKEN_DATA = [
   {
     name: "UniRoyal",
     symbol: "UNI",
-    description: "UniRoyal is the legendary meme coin of the crypto realm. With its majestic horn and a royal crown, our coin represents the magic of limitless potential and a truly enchanted community. Join us and make your portfolio a thing of legend!",
+    description:
+      "UniRoyal is the legendary meme coin of the crypto realm. With its majestic horn and a royal crown, our coin represents the magic of limitless potential and a truly enchanted community. Join us and make your portfolio a thing of legend!",
     image: "/IA/1/1.png",
   },
   {
@@ -28,43 +29,50 @@ const AI_TOKEN_DATA = [
   {
     name: "CatCoin",
     symbol: "CATCO",
-    description: "CatCoin is the purr-fect meme coin for the internet's true royalty. With a dignified yet mischievous spirit, our coin represents the independent and cunning nature of cats. Join our kingdom and let's conquer the crypto world one paw at a time!",
+    description:
+      "CatCoin is the purr-fect meme coin for the internet's true royalty. With a dignified yet mischievous spirit, our coin represents the independent and cunning nature of cats. Join our kingdom and let's conquer the crypto world one paw at a time!",
     image: "/IA/4/4.png",
   },
   {
     name: "PandaKing",
     symbol: "PDK",
-    description: "PandaKing is the chillest meme coin on the blockchain. With a regal crown and an easygoing spirit, our coin represents the calm and powerful nature of the panda. Join our kingdom and let's build a relaxed but resilient crypto community together!",
+    description:
+      "PandaKing is the chillest meme coin on the blockchain. With a regal crown and an easygoing spirit, our coin represents the calm and powerful nature of the panda. Join our kingdom and let's build a relaxed but resilient crypto community together!",
     image: "/IA/5/5.png",
   },
   {
     name: "ApeKing",
     symbol: "APE",
-    description: "ApeKing is the meme coin that is leading the charge in the crypto jungle. With a crown that represents strength and a community that is loyal and united, ApeKing stands for the power of the collective. Join the tribe and let's conquer the market together!",
+    description:
+      "ApeKing is the meme coin that is leading the charge in the crypto jungle. With a crown that represents strength and a community that is loyal and united, ApeKing stands for the power of the collective. Join the tribe and let's conquer the market together!",
     image: "/IA/6/6.png",
   },
   {
     name: "WolfKing",
     symbol: "WLK",
-    description: "WolfKing is the meme coin that leads the pack. With a regal crown and an unwavering gaze, our coin represents the strength, loyalty, and fierce independence of the lone wolf. Join our pack and run with the market leaders!",
+    description:
+      "WolfKing is the meme coin that leads the pack. With a regal crown and an unwavering gaze, our coin represents the strength, loyalty, and fierce independence of the lone wolf. Join our pack and run with the market leaders!",
     image: "/IA/7/7.png",
   },
   {
     name: "BearCrown",
     symbol: "BCR",
-    description: "BearCrown is the steadfast meme coin of the crypto forest. Adorned with a regal crown, our coin embodies the strength, resilience, and grounded nature of the bear. Join the BearCrown community and build a strong portfolio!",
+    description:
+      "BearCrown is the steadfast meme coin of the crypto forest. Adorned with a regal crown, our coin embodies the strength, resilience, and grounded nature of the bear. Join the BearCrown community and build a strong portfolio!",
     image: "/IA/8/8.png",
   },
   {
     name: "PhoenixCoin",
     symbol: "PHX",
-    description: "PhoenixCoin is the meme coin that rises from the ashes. Symbolizing rebirth and limitless growth, our coin represents the unstoppable spirit of the crypto market. Join our community and watch your portfolio rise to new heights!",
+    description:
+      "PhoenixCoin is the meme coin that rises from the ashes. Symbolizing rebirth and limitless growth, our coin represents the unstoppable spirit of the crypto market. Join our community and watch your portfolio rise to new heights!",
     image: "/IA/9/9.png",
   },
   {
     name: "LionKing",
     symbol: "LKG",
-    description: "LionKing is the meme coin that dominates the crypto savanna. With a regal crown and a powerful roar, our coin represents courage, leadership, and strength. Join the pride and rule the market with LionKing!",
+    description:
+      "LionKing is the meme coin that dominates the crypto savanna. With a regal crown and a powerful roar, our coin represents courage, leadership, and strength. Join the pride and rule the market with LionKing!",
     image: "/IA/10/10.png",
   },
 ]
@@ -111,6 +119,17 @@ const PaymentModal = ({
   const [timeLeft, setTimeLeft] = useState(900) // 15 minutes in seconds
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [copySuccess, setCopySuccess] = useState<string>("")
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopySuccess(type)
+      setTimeout(() => setCopySuccess(""), 2000)
+    } catch (err) {
+      console.error("Failed to copy: ", err)
+    }
+  }
 
   useEffect(() => {
     if (!isOpen) return
@@ -192,148 +211,128 @@ const PaymentModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md border border-slate-700">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-blue-500 rounded"></div>
-            </div>
-            <span className="text-white font-semibold">SecPay</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={resetTimer} className="text-slate-400 hover:text-white p-1 rounded" title="Reset Timer">
-              <RefreshCw className="w-5 h-5" />
-            </button>
-            <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded" title="Close">
-              <X className="w-5 h-5" />
+      <div className="bg-slate-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-slate-700">
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">
+              {step === "payment" ? "Complete Payment" : "Transaction Status"}
+            </h2>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1">
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
+
+          {step === "payment" ? (
+            <>
+              <div className="mb-6">
+                <p className="text-slate-400 text-sm mb-2">Payment amount</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-white text-xl sm:text-2xl font-bold">{totalCost.toFixed(6)} SOL</p>
+                  <button
+                    onClick={() => copyToClipboard(totalCost.toFixed(6), "amount")}
+                    className="text-slate-400 hover:text-white transition-colors p-1 relative"
+                    title="Copy amount"
+                  >
+                    <Copy className="w-4 h-4" />
+                    {copySuccess === "amount" && (
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded">
+                        Copied!
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-green-500 text-sm">Expiration time</span>
+                <span className="text-green-500 text-sm font-mono">{formatTime(timeLeft)}</span>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-slate-400 text-sm mb-2 block">Send to this address</label>
+                <div className="bg-slate-700 rounded-lg p-3 flex items-center justify-between gap-2">
+                  <span className="text-green-400 text-xs sm:text-sm font-mono break-all flex-1">
+                    genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard("genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL", "address")}
+                    className="text-slate-400 hover:text-white transition-colors p-1 flex-shrink-0 relative"
+                    title="Copy address"
+                  >
+                    <Copy className="w-4 h-4" />
+                    {copySuccess === "address" && (
+                      <span className="absolute -top-8 right-0 bg-green-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                        Copied!
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-6 text-center">
+                <div className="bg-white p-4 rounded-lg inline-block">
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 bg-slate-200 rounded flex items-center justify-center">
+                    <span className="text-slate-500 text-xs sm:text-sm">QR Code</span>
+                  </div>
+                </div>
+                <p className="text-slate-400 text-xs sm:text-sm mt-2">Scan with your Solana wallet</p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={onProceedToPayment}
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
+                >
+                  {isLoading ? "Processing..." : "I've Sent the Payment"}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Transaction step content - also made responsive */}
+              <div className="mb-6">
+                <label className="text-slate-400 text-sm mb-2 block">Transaction Signature</label>
+                <input
+                  type="text"
+                  value={transactionSignature}
+                  onChange={(e) => setTransactionSignature(e.target.value)}
+                  placeholder="Enter transaction signature..."
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
+                />
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <button
+                  onClick={onCheckTransaction}
+                  disabled={isLoading || !transactionSignature.trim()}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
+                >
+                  {isLoading ? "Checking..." : "Verify Transaction"}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
+                >
+                  Close
+                </button>
+              </div>
+            </>
+          )}
         </div>
-
-        {step === "payment" ? (
-          <>
-            <div className="mb-6">
-              <p className="text-slate-400 text-sm mb-2">Payment amount</p>
-              <p className="text-white text-2xl font-bold">{totalCost.toFixed(6)} SOL</p>
-            </div>
-
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-green-500 text-sm">Expiration time</span>
-              <span className="text-green-500 text-sm font-mono">{formatTime(timeLeft)}</span>
-            </div>
-
-            <div className="mb-4">
-              <label className="text-slate-400 text-sm mb-2 block">Select currency</label>
-              <div className="bg-slate-700 rounded-lg p-3 flex items-center gap-3">
-                <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
-                <span className="text-white">SOL</span>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="text-slate-400 text-sm mb-2 block">Select network</label>
-              <div className="bg-slate-700 rounded-lg p-3">
-                <span className="text-white">Mainnet</span>
-              </div>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
-            <button
-              onClick={handleProceedToPayment}
-              disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Processing...
-                </>
-              ) : (
-                "Proceed to the payment"
-              )}
-            </button>
-
-            <div className="text-center">
-              <p className="text-slate-400 text-xs">Encrypted & Secure Payment</p>
-              <p className="text-slate-400 text-xs">
-                By paying you agree to our <span className="text-blue-400 underline">terms of service</span>
-              </p>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="mb-6">
-              <p className="text-slate-400 text-sm mb-2">Payment amount</p>
-              <div className="flex items-center gap-2">
-                <p className="text-white text-2xl font-bold">{totalCost.toFixed(6)} SOL</p>
-                <button className="text-slate-400 hover:text-white">
-                  <Copy className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-green-500 text-sm">Expiration time</span>
-              <span className="text-green-500 text-sm font-mono">{formatTime(timeLeft)}</span>
-            </div>
-
-            <div className="mb-4">
-              <label className="text-slate-400 text-sm mb-2 block">Send to this address</label>
-              <div className="bg-slate-700 rounded-lg p-3 flex items-center justify-between">
-                <span className="text-green-400 text-sm font-mono">genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL</span>
-                <button className="text-slate-400 hover:text-white">
-                  <Copy className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="text-slate-400 text-sm mb-2 block">Paste your transaction signature</label>
-              <input
-                type="text"
-                value={transactionSignature}
-                onChange={(e) => setTransactionSignature(e.target.value)}
-                placeholder="Transaction signature"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
-            <button
-              onClick={handleCheckTransaction}
-              disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Verifying...
-                </>
-              ) : (
-                "Check Transaction"
-              )}
-            </button>
-
-            <div className="text-center">
-              <p className="text-slate-400 text-xs">Encrypted & Secure Payment</p>
-              <p className="text-slate-400 text-xs">
-                By paying you agree to our <a href="/terms" className="text-blue-400 underline">terms of service</a>
-              </p>
-            </div>
-          </>
-        )}
       </div>
     </div>
   )

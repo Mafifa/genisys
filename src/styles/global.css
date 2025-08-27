@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated to use #0c111d as primary background with 70-20-10 color rule */
+  /* Updated to use user's custom dark blue color scheme with 70-20-10 rule */
   --background: #0c111d;
   /* 70% - Primary dark blue background */
   --foreground: #e2e8f0;
@@ -188,6 +188,8 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    /* Added overflow-x hidden to prevent horizontal scroll on mobile */
+    overflow-x: hidden;
   }
 
   /* Updated scrollbar styling to match new color scheme */
@@ -250,5 +252,31 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Added responsive improvements for mobile */
+  @media (max-width: 640px) {
+    .text-balance {
+      text-wrap: balance;
+    }
+  }
+
+  /* Custom scrollbar for modal with new color scheme */
+  .max-h-\[90vh\]::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .max-h-\[90vh\]::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 3px;
+  }
+
+  .max-h-\[90vh\]::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  .max-h-\[90vh\]::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
   }
 }
