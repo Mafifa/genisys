@@ -33,12 +33,12 @@ const TokenTracker: React.FC = () => {
   const [token, setToken] = useState<Token | null>(null)
   const [tokenData, setTokenData] = useState<TokenData>({
     price: 0.000001,
-    marketCap: 189.2, // Start with realistic market cap based on 1 SOL
-    volume24h: 50,
+    marketCap: 205.6, // Start with realistic market cap based on 1 SOL
+    volume24h: 10, // Start with minimal volume
     liquidity: 1, // Start with 1 SOL
-    liquidityUSD: 189.2, // 1 SOL = $189.2
+    liquidityUSD: 205.6, // 1 SOL = $205.6
     priceChange: 0,
-    holders: 1,
+    holders: 0, // Start with 0 holders
   })
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
@@ -48,9 +48,10 @@ const TokenTracker: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const SOL_PRICE = 189.2
+  const SOL_PRICE = 205.6
   const MAX_LIQUIDITY_USD = 1200
-  const MAX_HOLDERS = 68
+  const MAX_HOLDERS = 32
+  const MAX_TIME_SECONDS = 1680 // 28 minutes exactly
 
   useEffect(() => {
     const createdTokens = localStorage.getItem("createdTokens")
@@ -61,14 +62,12 @@ const TokenTracker: React.FC = () => {
           const lastToken = tokens[tokens.length - 1]
           setToken(lastToken)
 
-          const initialData: ChartDataPoint[] = []
-          const startTime = Date.now()
-          for (let i = 0; i < 10; i++) {
-            initialData.push({
-              time: startTime - (10 - i) * 60000,
-              price: 0.000001 + Math.random() * 0.000001,
-            })
-          }
+          const initialData: ChartDataPoint[] = [
+            {
+              time: Date.now(),
+              price: 0.000001,
+            },
+          ]
           setChartData(initialData)
         }
       } catch (error) {
@@ -84,51 +83,74 @@ const TokenTracker: React.FC = () => {
       setTimeElapsed((prev) => {
         const newTime = prev + 1
 
-        if (newTime >= 900) {
+        if (newTime >= MAX_TIME_SECONDS) {
           triggerRugPull()
           return newTime
         }
 
         setTokenData((prevData) => {
-          const isWithdrawal = Math.random() < 0.05 // 5% chance of holder withdrawal
-          const isNewHolder = Math.random() < 0.08 // 8% chance of new holder joining
+          const timeProgress = newTime / MAX_TIME_SECONDS
+          const targetLiquidityUSD = 205.6 + (MAX_LIQUIDITY_USD - 205.6) * timeProgress
+          const targetHolders = Math.floor(MAX_HOLDERS * timeProgress)
 
+          const isEarlyPhase = newTime <= 10
           let liquidityMultiplier: number
           let holdersChange: number
 
-          if (isWithdrawal) {
-            // Holder leaves - everything decreases
-            liquidityMultiplier = 0.85 + Math.random() * 0.1 // -15% to -5%
-            holdersChange = -Math.floor(Math.random() * 2 + 1) // -1 to -2 holders
-          } else if (isNewHolder) {
-            // New holder joins - everything increases
-            liquidityMultiplier = 1.05 + Math.random() * 0.15 // +5% to +20%
-            holdersChange = Math.floor(Math.random() * 2 + 1) // +1 to +2 holders
+          if (isEarlyPhase) {
+            const earlyProgress = newTime / 10
+            const targetEarlyLiquidity = 205.6 + (300 - 205.6) * earlyProgress // Reach ~$300 in first 10 seconds
+            liquidityMultiplier = targetEarlyLiquidity / prevData.liquidityUSD
+            holdersChange = newTime <= 3 ? 1 : Math.random() < 0.6 ? 1 : 0 // First holders in first 3 seconds
           } else {
-            // Normal growth with slight upward bias
-            liquidityMultiplier = 1 + (Math.random() * 0.1 - 0.02) // -2% to +8%
-            holdersChange = Math.random() < 0.2 ? (Math.random() < 0.7 ? 1 : -1) : 0
+            const currentTarget = targetLiquidityUSD
+            const liquidityGap = currentTarget - prevData.liquidityUSD
+
+            const isWithdrawal = Math.random() < 0.04 && prevData.holders > 1 // 4% chance
+            const isNewHolder = Math.random() < 0.08 + timeProgress * 0.05 // Increasing chance over time
+
+            if (isWithdrawal) {
+              liquidityMultiplier = 0.85 + Math.random() * 0.1 // -15% to -5%
+              holdersChange = -Math.floor(Math.random() * 2 + 1) // -1 to -2 holders
+            } else if (isNewHolder && prevData.holders < targetHolders) {
+              const growthNeeded = liquidityGap > 0 ? Math.min(0.15, liquidityGap / prevData.liquidityUSD) : 0.05
+              liquidityMultiplier = 1 + growthNeeded + Math.random() * 0.08 // Natural growth + randomness
+              holdersChange = Math.floor(Math.random() * 2 + 1) // +1 to +2 holders
+            } else {
+              if (liquidityGap > 0) {
+                const progressionRate = Math.min(0.02, (liquidityGap / prevData.liquidityUSD) * 0.1)
+                liquidityMultiplier = 1 + progressionRate + (Math.random() * 0.04 - 0.02) // Small fluctuations
+              } else {
+                liquidityMultiplier = 1 + (Math.random() * 0.04 - 0.02) // Just fluctuations
+              }
+              holdersChange = Math.random() < 0.1 ? (Math.random() < 0.7 ? 1 : -1) : 0
+            }
           }
 
-          const newLiquidityUSD = Math.min(MAX_LIQUIDITY_USD, Math.max(50, prevData.liquidityUSD * liquidityMultiplier))
+          const newLiquidityUSD = Math.min(
+            MAX_LIQUIDITY_USD,
+            Math.max(205.6, prevData.liquidityUSD * liquidityMultiplier),
+          )
           const newLiquidity = newLiquidityUSD / SOL_PRICE
 
-          const newHolders = Math.min(MAX_HOLDERS, Math.max(1, prevData.holders + holdersChange))
+          const newHolders = Math.min(MAX_HOLDERS, Math.max(0, prevData.holders + holdersChange))
 
-          const holdersFactor = Math.pow(newHolders / Math.max(1, prevData.holders), 0.3)
-          const liquidityFactor = Math.pow(newLiquidityUSD / Math.max(50, prevData.liquidityUSD), 0.7)
+          const holdersFactor = newHolders > 0 ? Math.pow(newHolders / Math.max(1, prevData.holders || 1), 0.3) : 1
+          const liquidityFactor = Math.pow(newLiquidityUSD / Math.max(205.6, prevData.liquidityUSD), 0.7)
           const combinedFactor = holdersFactor * liquidityFactor
           const newPrice = Math.max(0.000001, prevData.price * combinedFactor)
 
           const totalSupplyNum = Number.parseFloat(token.totalSupply)
-          const circulatingSupply = totalSupplyNum * 0.8 // Assume 80% circulating
-          const newMarketCap = (newPrice * circulatingSupply) / Math.pow(10, token.decimals)
+          const circulatingSupply = totalSupplyNum * 0.8
+          const baseMarketCap = (newPrice * circulatingSupply) / Math.pow(10, token.decimals)
+          const marketCapFluctuation = 0.92 + Math.random() * 0.16 // ±8% fluctuation for realism
+          const newMarketCap = baseMarketCap * marketCapFluctuation
 
-          const baseVolume = newLiquidityUSD * 0.1 // Base volume is 10% of liquidity
-          const activityMultiplier = 0.8 + Math.random() * 0.4 // 0.8x to 1.2x
-          const newVolume24h = baseVolume * activityMultiplier * (newHolders / 10) // More holders = more volume
+          const baseVolume = newLiquidityUSD * 0.12 // Base volume is 12% of liquidity
+          const activityMultiplier = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x
+          const holderVolumeBoost = Math.max(1, Math.sqrt(newHolders / 2)) // Square root scaling
+          const newVolume24h = baseVolume * activityMultiplier * holderVolumeBoost
 
-          // Price change from initial
           const priceChange = ((newPrice - 0.000001) / 0.000001) * 100
 
           return {
@@ -148,7 +170,7 @@ const TokenTracker: React.FC = () => {
             price: tokenData.price,
           }
           const updatedChart = [...prevChart, newPoint]
-          return updatedChart.slice(-50)
+          return updatedChart.slice(-100)
         })
 
         return newTime
@@ -222,34 +244,33 @@ const TokenTracker: React.FC = () => {
   const triggerRugPull = () => {
     setIsRugPulled(true)
 
-    // Gradual decline over 10 seconds
     let step = 0
     const rugPullInterval = setInterval(() => {
       step++
-      const progress = step / 10 // 10 steps total
+      const progress = step / 15 // 15 steps total
 
       setTokenData((prevData) => {
-        const remainingLiquidity = Math.max(0.01, prevData.liquidityUSD * (1 - progress * 0.99))
-        const remainingHolders = Math.max(1, Math.floor(prevData.holders * (1 - progress * 0.9)))
-        const crashPrice = Math.max(0.000001, prevData.price * (1 - progress * 0.95))
+        const remainingLiquidity = Math.max(0.01, prevData.liquidityUSD * (1 - progress * 0.995))
+        const remainingHolders = Math.max(0, Math.floor(prevData.holders * (1 - progress * 0.95)))
+        const crashPrice = Math.max(0.000001, prevData.price * (1 - progress * 0.98))
 
         return {
           price: crashPrice,
-          marketCap: Math.max(1, prevData.marketCap * (1 - progress * 0.98)),
-          volume24h: Math.max(1, prevData.volume24h * (1 - progress * 0.9)),
+          marketCap: Math.max(0.01, prevData.marketCap * (1 - progress * 0.99)),
+          volume24h: Math.max(0.01, prevData.volume24h * (1 - progress * 0.95)),
           liquidity: remainingLiquidity / SOL_PRICE,
           liquidityUSD: remainingLiquidity,
-          priceChange: -95 - progress * 4.9, // Goes to -99.9%
+          priceChange: -95 - progress * 4.9,
           holders: remainingHolders,
         }
       })
 
       setChartData((prevChart) => {
-        const crashPrice = Math.max(0.000001, tokenData.price * (1 - progress * 0.95))
+        const crashPrice = Math.max(0.000001, tokenData.price * (1 - progress * 0.98))
         return [...prevChart, { time: Date.now(), price: crashPrice }]
       })
 
-      if (step >= 10) {
+      if (step >= 15) {
         clearInterval(rugPullInterval)
       }
     }, 1000)
@@ -420,7 +441,7 @@ const TokenTracker: React.FC = () => {
       {process.env.NODE_ENV === "development" && (
         <div className="mt-4 text-center text-sm text-muted-foreground">
           <span>
-            Time elapsed: {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, "0")} / 15:00
+            Time elapsed: {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, "0")} / 28:00
           </span>
         </div>
       )}

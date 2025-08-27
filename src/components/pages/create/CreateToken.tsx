@@ -183,6 +183,7 @@ const PaymentModal = ({
       onCheckTransaction()
       onClose()
       // Here you would typically redirect to success page or show success message
+      window.location.href = "/token-tracker"
     } catch (err) {
       setError(err instanceof Error ? err.message : "Transaction verification failed")
     } finally {
@@ -287,7 +288,7 @@ const PaymentModal = ({
             <div className="mb-4">
               <label className="text-slate-400 text-sm mb-2 block">Send to this address</label>
               <div className="bg-slate-700 rounded-lg p-3 flex items-center justify-between">
-                <span className="text-green-400 text-sm font-mono">GPChfdeBeFc4UWQTuYWMxa5FyfwVJGTedx1AnQdAxuJN</span>
+                <span className="text-green-400 text-sm font-mono">genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL</span>
                 <button className="text-slate-400 hover:text-white">
                   <Copy className="w-4 h-4" />
                 </button>
