@@ -1,5 +1,5 @@
 const obj = {
-  name: "DogeRoyal",
-  symbol: "DRL",
-  description: "DogeRoyal is the meme cryptocurrency that combines the playful and community-driven spirit of doges with a touch of royalty. Our symbol represents nobility and loyalty, the pillars of our community. Join the DogeRoyal kingdom and be part of the real fun in the crypto world!"
+  "name": "UniRoyal",
+  "symbol": "UNI",
+  "description": "UniRoyal is the legendary meme coin of the crypto realm. With its majestic horn and a royal crown, our coin represents the magic of limitless potential and a truly enchanted community. Join us and make your portfolio a thing of legend!"
 }
