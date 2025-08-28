@@ -1,7 +1,6 @@
 import type React from "react"
-
-import { useState, useEffect } from "react"
 import { Navigation } from "../../Navigation"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Upload, Copy, RefreshCw, X } from "lucide-react"
 
 const AI_TOKEN_DATA = [
@@ -197,8 +196,8 @@ const PaymentModal = ({
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      // Simulate random server error (30% chance)
-      if (Math.random() < 0.3) {
+      // Simulate random server error (3% chance)
+      if (Math.random() < 0.03) {
         throw new Error("Failed to verify transaction. Please check your signature and try again.")
       }
 
@@ -280,7 +279,7 @@ const PaymentModal = ({
             <button
               onClick={handleProceedToPayment}
               disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2"
+              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -413,11 +412,17 @@ export default function CreateToken () {
   })
 
   const calculateTotalCost = () => {
-    let baseCost = 0.25 // Base cost
-    if (tokenData.boostVisibility) {
-      baseCost += 0.15 // Boost visibility cost
+
+    if (!tokenData.quoteTokenAmount) {
+      if (!tokenData.boostVisibility) {
+        return 0.25
+      }
+      return 0.4
     }
-    return baseCost
+
+    const quoteAmount = Number.parseFloat(tokenData.quoteTokenAmount) || 0
+
+    return quoteAmount
   }
 
   const steps = [
@@ -628,7 +633,7 @@ export default function CreateToken () {
                         <button
                           onClick={handleAskAI}
                           disabled={isAiLoading || aiAttempts >= 10}
-                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-3 sm:px-4 py-2 rounded-lg text-white text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-3 sm:px-4 py-2 rounded-lg text-white text-xs sm:text-sm transition-colors flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap"
                           title={aiAttempts >= 10 ? "Maximum 10 attempts reached" : `${aiAttempts}/10 attempts used`}
                         >
                           {isAiLoading ? (
@@ -928,7 +933,7 @@ export default function CreateToken () {
                           <div className="flex justify-between items-center mb-2">
                             <label className="text-slate-300 text-sm">Quote Token amount (SOL)</label>
                             <span className="text-slate-400 text-xs">
-                              Min: {calculateTotalCost().toFixed(2)} SOL | Max: 100 SOL
+                              Min: {tokenData.boostVisibility ? 0.4 : 0.25} SOL | Max: 100 SOL
                             </span>
                           </div>
                           <input
