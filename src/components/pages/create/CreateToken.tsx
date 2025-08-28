@@ -1,8 +1,10 @@
+"use client"
+
 import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Navigation } from "../../Navigation"
-import { ChevronLeft, ChevronRight, Upload, Copy, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Upload, Copy, RefreshCw, X } from "lucide-react"
 
 const AI_TOKEN_DATA = [
   {
@@ -106,6 +108,21 @@ interface PaymentModalProps {
   onCheckTransaction: () => void
 }
 
+const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    // Opcional: agregar toast notification aquí
+  } catch (err) {
+    // Fallback para navegadores que no soportan clipboard API
+    const textArea = document.createElement("textarea")
+    textArea.value = text
+    document.body.appendChild(textArea)
+    textArea.select()
+    document.execCommand("copy")
+    document.body.removeChild(textArea)
+  }
+}
+
 const PaymentModal = ({
   isOpen,
   onClose,
@@ -119,17 +136,6 @@ const PaymentModal = ({
   const [timeLeft, setTimeLeft] = useState(900) // 15 minutes in seconds
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [copySuccess, setCopySuccess] = useState<string>("")
-
-  const copyToClipboard = async (text: string, type: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopySuccess(type)
-      setTimeout(() => setCopySuccess(""), 2000)
-    } catch (err) {
-      console.error("Failed to copy: ", err)
-    }
-  }
 
   useEffect(() => {
     if (!isOpen) return
@@ -182,7 +188,7 @@ const PaymentModal = ({
 
   const handleCheckTransaction = async () => {
     if (!transactionSignature.trim()) {
-      setError("Please enter a transaction signature")
+      setError("Please enter your Solana Wallet ID")
       return
     }
 
@@ -211,128 +217,161 @@ const PaymentModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-slate-700">
-        <div className="p-6 sm:p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
-              {step === "payment" ? "Complete Payment" : "Transaction Status"}
-            </h2>
-            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1">
-              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+      <div className="bg-slate-800 rounded-xl p-4 sm:p-6 w-full max-w-md border border-slate-700">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            </div>
+            <span className="text-white font-semibold">SecPay</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={resetTimer} className="text-slate-400 hover:text-white p-1 rounded" title="Reset Timer">
+              <RefreshCw className="w-5 h-5" />
+            </button>
+            <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded" title="Close">
+              <X className="w-5 h-5" />
             </button>
           </div>
-
-          {step === "payment" ? (
-            <>
-              <div className="mb-6">
-                <p className="text-slate-400 text-sm mb-2">Payment amount</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-white text-xl sm:text-2xl font-bold">{totalCost.toFixed(6)} SOL</p>
-                  <button
-                    onClick={() => copyToClipboard(totalCost.toFixed(6), "amount")}
-                    className="text-slate-400 hover:text-white transition-colors p-1 relative"
-                    title="Copy amount"
-                  >
-                    <Copy className="w-4 h-4" />
-                    {copySuccess === "amount" && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded">
-                        Copied!
-                      </span>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-green-500 text-sm">Expiration time</span>
-                <span className="text-green-500 text-sm font-mono">{formatTime(timeLeft)}</span>
-              </div>
-
-              <div className="mb-4">
-                <label className="text-slate-400 text-sm mb-2 block">Send to this address</label>
-                <div className="bg-slate-700 rounded-lg p-3 flex items-center justify-between gap-2">
-                  <span className="text-green-400 text-xs sm:text-sm font-mono break-all flex-1">
-                    genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard("genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL", "address")}
-                    className="text-slate-400 hover:text-white transition-colors p-1 flex-shrink-0 relative"
-                    title="Copy address"
-                  >
-                    <Copy className="w-4 h-4" />
-                    {copySuccess === "address" && (
-                      <span className="absolute -top-8 right-0 bg-green-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                        Copied!
-                      </span>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-6 text-center">
-                <div className="bg-white p-4 rounded-lg inline-block">
-                  <div className="w-32 h-32 sm:w-40 sm:h-40 bg-slate-200 rounded flex items-center justify-center">
-                    <span className="text-slate-500 text-xs sm:text-sm">QR Code</span>
-                  </div>
-                </div>
-                <p className="text-slate-400 text-xs sm:text-sm mt-2">Scan with your Solana wallet</p>
-              </div>
-
-              <div className="space-y-3">
-                <button
-                  onClick={onProceedToPayment}
-                  disabled={isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
-                >
-                  {isLoading ? "Processing..." : "I've Sent the Payment"}
-                </button>
-                <button
-                  onClick={onClose}
-                  className="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
-                >
-                  Cancel
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Transaction step content - also made responsive */}
-              <div className="mb-6">
-                <label className="text-slate-400 text-sm mb-2 block">Transaction Signature</label>
-                <input
-                  type="text"
-                  value={transactionSignature}
-                  onChange={(e) => setTransactionSignature(e.target.value)}
-                  placeholder="Enter transaction signature..."
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-                />
-              </div>
-
-              {error && (
-                <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
-                  <p className="text-red-400 text-sm">{error}</p>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <button
-                  onClick={onCheckTransaction}
-                  disabled={isLoading || !transactionSignature.trim()}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
-                >
-                  {isLoading ? "Checking..." : "Verify Transaction"}
-                </button>
-                <button
-                  onClick={onClose}
-                  className="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
-                >
-                  Close
-                </button>
-              </div>
-            </>
-          )}
         </div>
+
+        {step === "payment" ? (
+          <>
+            <div className="mb-6">
+              <p className="text-slate-400 text-sm mb-2">Payment amount</p>
+              <p className="text-white text-xl sm:text-2xl font-bold break-all">{totalCost.toFixed(6)} SOL</p>
+            </div>
+
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-green-500 text-sm">Expiration time</span>
+              <span className="text-green-500 text-sm font-mono">{formatTime(timeLeft)}</span>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-slate-400 text-sm mb-2 block">Select currency</label>
+              <div className="bg-slate-700 rounded-lg p-3 flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                <span className="text-white">SOL</span>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="text-slate-400 text-sm mb-2 block">Select network</label>
+              <div className="bg-slate-700 rounded-lg p-3">
+                <span className="text-white">Mainnet</span>
+              </div>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
+
+            <button
+              onClick={handleProceedToPayment}
+              disabled={isLoading}
+              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Processing...
+                </>
+              ) : (
+                "Proceed to the payment"
+              )}
+            </button>
+
+            <div className="text-center">
+              <p className="text-slate-400 text-xs">Encrypted & Secure Payment</p>
+              <p className="text-slate-400 text-xs">
+                By paying you agree to our <span className="text-blue-400 underline">terms of service</span>
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mb-6">
+              <p className="text-slate-400 text-sm mb-2">Payment amount</p>
+              <div className="flex items-center gap-2">
+                <p className="text-white text-xl sm:text-2xl font-bold break-all flex-1">{totalCost.toFixed(6)} SOL</p>
+                <button
+                  onClick={() => copyToClipboard(`${totalCost.toFixed(6)} SOL`)}
+                  className="text-slate-400 hover:text-white flex-shrink-0 p-1 rounded hover:bg-slate-700 transition-colors"
+                  title="Copy amount"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-green-500 text-sm">Expiration time</span>
+              <span className="text-green-500 text-sm font-mono">{formatTime(timeLeft)}</span>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-slate-400 text-sm mb-2 block">Send to this address</label>
+              <div className="bg-slate-700 rounded-lg p-3 flex items-center justify-between gap-2">
+                <span className="text-green-400 text-xs sm:text-sm font-mono break-all flex-1 min-w-0">
+                  genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL
+                </span>
+                <button
+                  onClick={() => copyToClipboard("genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL")}
+                  className="text-slate-400 hover:text-white flex-shrink-0 p-1 rounded hover:bg-slate-600 transition-colors"
+                  title="Copy wallet address"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="text-slate-400 text-sm mb-2 block">Paste your Solana Wallet ID</label>
+              <input
+                type="text"
+                value={transactionSignature}
+                onChange={(e) => setTransactionSignature(e.target.value)}
+                placeholder="Wallet ID"
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
+
+            <button
+              onClick={handleCheckTransaction}
+              disabled={isLoading}
+              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Verifying...
+                </>
+              ) : (
+                "Check Transaction"
+              )}
+            </button>
+
+            <div className="text-center">
+              <p className="text-slate-400 text-xs">Encrypted & Secure Payment</p>
+              <p className="text-slate-400 text-xs">
+                By paying you agree to our{" "}
+                <a href="/terms" className="text-blue-400 underline">
+                  terms of service
+                </a>
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -344,6 +383,7 @@ export default function CreateToken () {
   const [paymentStep, setPaymentStep] = useState<"payment" | "transaction">("payment")
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [currentAiIndex, setCurrentAiIndex] = useState(0)
+  const [aiAttempts, setAiAttempts] = useState(0)
   const [formErrors, setFormErrors] = useState<string[]>([])
   const [tokenData, setTokenData] = useState<TokenData>({
     name: "",
@@ -461,7 +501,13 @@ export default function CreateToken () {
   }
 
   const handleAskAI = async () => {
+    if (aiAttempts >= 10) {
+      alert("You have reached the maximum of 10 AI attempts.")
+      return
+    }
+
     setIsAiLoading(true)
+    setAiAttempts((prev) => prev + 1)
 
     try {
       // Simulate AI processing time
@@ -495,29 +541,35 @@ export default function CreateToken () {
 
       <div className="container mx-auto px-4 py-8">
         {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-12">
-          {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center">
-              <div className="flex flex-col items-center">
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${step.completed ? "bg-blue-600" : currentStep === step.number ? "bg-blue-600" : "bg-slate-700"
-                    }`}
-                >
-                  {step.completed ? "✓" : step.number}
+        <div className="flex items-center justify-center mb-6 sm:mb-8 lg:mb-12 px-2 sm:px-4">
+          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 w-full max-w-lg">
+            {steps.map((step, index) => (
+              <div key={step.number} className="flex items-center flex-1">
+                <div className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm ${step.completed ? "bg-blue-600" : currentStep === step.number ? "bg-blue-600" : "bg-slate-700"
+                      }`}
+                  >
+                    {step.completed ? "✓" : step.number}
+                  </div>
+                  <span className="text-slate-400 text-xs sm:text-sm mt-1 sm:mt-2 text-center leading-tight max-w-[50px] sm:max-w-[80px] lg:max-w-none">
+                    {step.title}
+                  </span>
                 </div>
-                <span className="text-slate-400 text-sm mt-2">{step.title}</span>
+                {index < steps.length - 1 && (
+                  <div
+                    className={`flex-1 h-0.5 mx-1 sm:mx-2 lg:mx-4 max-w-[20px] sm:max-w-[40px] lg:max-w-none ${step.completed ? "bg-blue-600" : "bg-slate-700"}`}
+                  ></div>
+                )}
               </div>
-              {index < steps.length - 1 && (
-                <div className={`w-24 h-0.5 mx-4 ${step.completed ? "bg-blue-600" : "bg-slate-700"}`}></div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Form */}
           <div className="lg:col-span-2">
-            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+            <div className="bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-700">
               {formErrors.length > 0 && (
                 <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg">
                   <h4 className="text-red-400 font-semibold mb-2">Please fix the following errors:</h4>
@@ -531,31 +583,35 @@ export default function CreateToken () {
 
               {currentStep === 1 && (
                 <>
-                  <h2 className="text-2xl font-bold text-white mb-6">Step 1: Token Info</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Step 1: Token Info</h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                     <div>
                       <label className="text-slate-300 text-sm mb-2 block">Token Name</label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <input
                           type="text"
                           value={tokenData.name}
                           onChange={(e) => setTokenData({ ...tokenData, name: e.target.value })}
                           placeholder="Dogecoin"
-                          className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                          className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                         />
                         <button
                           onClick={handleAskAI}
-                          disabled={isAiLoading}
-                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-white text-sm transition-colors flex items-center gap-2"
+                          disabled={isAiLoading || aiAttempts >= 10}
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-3 sm:px-4 py-2 rounded-lg text-white text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                          title={aiAttempts >= 10 ? "Maximum 10 attempts reached" : `${aiAttempts}/10 attempts used`}
                         >
                           {isAiLoading ? (
                             <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              AI...
+                              <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span className="hidden sm:inline">AI...</span>
                             </>
                           ) : (
-                            "Ask AI"
+                            <>
+                              <span>Ask AI</span>
+                              <span className="text-xs opacity-75">({aiAttempts}/10)</span>
+                            </>
                           )}
                         </button>
                       </div>
@@ -568,19 +624,19 @@ export default function CreateToken () {
                         value={tokenData.symbol}
                         onChange={(e) => setTokenData({ ...tokenData, symbol: e.target.value })}
                         placeholder="DOGE"
-                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                     <div>
                       <label className="text-slate-300 text-sm mb-2 block">Total Supply</label>
                       <input
                         type="text"
                         value={tokenData.totalSupply}
                         onChange={(e) => setTokenData({ ...tokenData, totalSupply: e.target.value })}
-                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                       />
                     </div>
 
@@ -589,7 +645,7 @@ export default function CreateToken () {
                       <select
                         value={tokenData.decimals}
                         onChange={(e) => setTokenData({ ...tokenData, decimals: Number.parseInt(e.target.value) })}
-                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                       >
                         {[...Array(19)].map((_, i) => (
                           <option key={i} value={i}>
@@ -600,38 +656,38 @@ export default function CreateToken () {
                     </div>
                   </div>
 
-                  <div className="mb-6">
+                  <div className="mb-4 sm:mb-6">
                     <label className="text-slate-300 text-sm mb-2 block">Description</label>
                     <textarea
                       value={tokenData.description}
                       onChange={(e) => setTokenData({ ...tokenData, description: e.target.value })}
                       placeholder="Describe your token project..."
                       rows={4}
-                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 resize-none"
+                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 resize-none text-sm sm:text-base"
                     />
                   </div>
 
-                  <div className="mb-8">
+                  <div className="mb-6 sm:mb-8">
                     <label className="text-slate-300 text-sm mb-2 block">Token Icon</label>
                     <label htmlFor="icon-upload" className="cursor-pointer">
-                      <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-slate-500 transition-colors">
+                      <div className="border-2 border-dashed border-slate-600 rounded-lg p-6 sm:p-8 text-center hover:border-slate-500 transition-colors">
                         {tokenData.iconUrl ? (
                           <div className="flex flex-col items-center">
                             <img
                               src={tokenData.iconUrl || "/placeholder.svg"}
                               alt="Token icon"
-                              className="w-16 h-16 rounded-full mb-4 object-cover"
+                              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 object-cover"
                             />
-                            <p className="text-green-400 mb-2">
+                            <p className="text-green-400 mb-1 sm:mb-2">
                               {tokenData.icon ? "Custom Image Uploaded" : "AI Generated Icon"}
                             </p>
-                            <p className="text-slate-400 text-sm">Click to upload a different image</p>
+                            <p className="text-slate-400 text-xs sm:text-sm">Click to upload a different image</p>
                           </div>
                         ) : (
                           <>
-                            <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                            <p className="text-blue-400 mb-2">Click to upload or drag and drop</p>
-                            <p className="text-slate-400 text-sm">PNG, JPG, up to 10MB</p>
+                            <Upload className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400 mx-auto mb-2 sm:mb-4" />
+                            <p className="text-blue-400 mb-1 sm:mb-2">Click to upload or drag and drop</p>
+                            <p className="text-slate-400 text-xs sm:text-sm">PNG, JPG, up to 10MB</p>
                           </>
                         )}
                       </div>
@@ -649,23 +705,34 @@ export default function CreateToken () {
 
               {currentStep === 2 && (
                 <>
-                  <div className="text-center mb-8">
-                    <div className="text-4xl font-bold text-blue-400 mb-2">{calculateTotalCost().toFixed(2)} SOL</div>
-                    <div className="text-slate-400">Total Cost</div>
+                  <div className="text-center mb-6 sm:mb-8">
+                    <div className="flex items-center justify-center gap-2 mb-1 sm:mb-2">
+                      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-400 break-all">
+                        {calculateTotalCost().toFixed(2)} SOL
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(`${calculateTotalCost().toFixed(2)} SOL`)}
+                        className="text-slate-400 hover:text-blue-400 p-1 rounded hover:bg-slate-700 transition-colors"
+                        title="Copy total cost"
+                      >
+                        <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    </div>
+                    <div className="text-slate-400 text-sm sm:text-base">Total Cost</div>
                   </div>
 
-                  <h2 className="text-2xl font-bold text-white mb-6">Step 2: Advanced Settings</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Step 2: Advanced Settings</h2>
 
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-700 rounded-lg">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                           </div>
-                          <h3 className="text-white font-semibold">Revoke Freeze Authority</h3>
+                          <h3 className="text-white font-semibold text-sm sm:text-base">Revoke Freeze Authority</h3>
                         </div>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-400 text-xs sm:text-sm">
                           Freeze Authority allows you to freeze token accounts of holders.
                         </p>
                       </div>
@@ -676,19 +743,19 @@ export default function CreateToken () {
                           onChange={(e) => setTokenData({ ...tokenData, revokeFreeze: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-9 h-5 sm:w-11 sm:h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-700 rounded-lg">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-purple-600 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                           </div>
-                          <h3 className="text-white font-semibold">Revoke Mint Authority</h3>
+                          <h3 className="text-white font-semibold text-sm sm:text-base">Revoke Mint Authority</h3>
                         </div>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-400 text-xs sm:text-sm">
                           Mint Authority allows you to mint more supply of your token.
                         </p>
                       </div>
@@ -699,19 +766,21 @@ export default function CreateToken () {
                           onChange={(e) => setTokenData({ ...tokenData, revokeMint: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-9 h-5 sm:w-11 sm:h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-700 rounded-lg">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-pink-600 rounded-full flex items-center justify-center">
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-pink-600 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                           </div>
-                          <h3 className="text-white font-semibold">Revoke Update Authority</h3>
+                          <h3 className="text-white font-semibold text-sm sm:text-base">Revoke Update Authority</h3>
                         </div>
-                        <p className="text-slate-400 text-sm">Update Authority allows you to update token metadata.</p>
+                        <p className="text-slate-400 text-xs sm:text-sm">
+                          Update Authority allows you to update token metadata.
+                        </p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -720,19 +789,19 @@ export default function CreateToken () {
                           onChange={(e) => setTokenData({ ...tokenData, revokeUpdate: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-9 h-5 sm:w-11 sm:h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-700 rounded-lg">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-600 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                           </div>
-                          <h3 className="text-white font-semibold">Custom Creator Address</h3>
+                          <h3 className="text-white font-semibold text-sm sm:text-base">Custom Creator Address</h3>
                         </div>
-                        <p className="text-slate-400 text-sm">Customize who created the token</p>
+                        <p className="text-slate-400 text-xs sm:text-sm">Customize who created the token</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -741,7 +810,7 @@ export default function CreateToken () {
                           onChange={(e) => setTokenData({ ...tokenData, customCreator: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-9 h-5 sm:w-11 sm:h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
 
@@ -753,23 +822,23 @@ export default function CreateToken () {
                           value={tokenData.creatorAddress}
                           onChange={(e) => setTokenData({ ...tokenData, creatorAddress: e.target.value })}
                           placeholder="Enter Solana wallet address"
-                          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                         />
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg border-2 border-yellow-600">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-700 rounded-lg border-2 border-yellow-600">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center">
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-yellow-600 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                           </div>
-                          <h3 className="text-white font-semibold">Boost Visibility</h3>
+                          <h3 className="text-white font-semibold text-sm sm:text-base">Boost Visibility</h3>
                           <span className="text-yellow-400 text-xs bg-yellow-600/20 px-2 py-1 rounded-full">
                             +0.15 SOL
                           </span>
                         </div>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-400 text-xs sm:text-sm">
                           Increase your token's visibility and reach more potential investors.
                         </p>
                       </div>
@@ -780,19 +849,21 @@ export default function CreateToken () {
                           onChange={(e) => setTokenData({ ...tokenData, boostVisibility: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
+                        <div className="w-9 h-5 sm:w-11 sm:h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
                       </label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-700 rounded-lg">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-cyan-600 rounded-full flex items-center justify-center">
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-cyan-600 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                           </div>
-                          <h3 className="text-white font-semibold">Add Initial Liquidity</h3>
+                          <h3 className="text-white font-semibold text-sm sm:text-base">Add Initial Liquidity</h3>
                         </div>
-                        <p className="text-slate-400 text-sm">Create a liquidity pool on Raydium instantly.</p>
+                        <p className="text-slate-400 text-xs sm:text-sm">
+                          Create a liquidity pool on Raydium instantly.
+                        </p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -801,7 +872,7 @@ export default function CreateToken () {
                           onChange={(e) => setTokenData({ ...tokenData, addLiquidity: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-9 h-5 sm:w-11 sm:h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
 
@@ -820,7 +891,7 @@ export default function CreateToken () {
                             type="text"
                             value={tokenData.baseTokenAmount}
                             onChange={(e) => setTokenData({ ...tokenData, baseTokenAmount: e.target.value })}
-                            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                           />
                         </div>
 
@@ -835,7 +906,7 @@ export default function CreateToken () {
                             type="text"
                             value={tokenData.quoteTokenAmount}
                             onChange={(e) => setTokenData({ ...tokenData, quoteTokenAmount: e.target.value })}
-                            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                           />
                         </div>
                       </div>
@@ -846,9 +917,9 @@ export default function CreateToken () {
 
               {currentStep === 3 && (
                 <>
-                  <h2 className="text-2xl font-bold text-white mb-6">Step 3: Review & Create</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Step 3: Review & Create</h2>
 
-                  <div className="space-y-4 mb-8">
+                  <div className="space-y-4 mb-6 sm:mb-8">
                     <div className="flex justify-between">
                       <span className="text-slate-400">Name:</span>
                       <span className="text-white">{tokenData.name || "Token Name"}</span>
@@ -891,7 +962,7 @@ export default function CreateToken () {
                     )}
                   </div>
 
-                  <div className="bg-slate-700 rounded-lg p-4 mb-8">
+                  <div className="bg-slate-700 rounded-lg p-3 sm:p-4 mb-6 sm:mb-8">
                     <div className="flex justify-between items-center">
                       <span className="text-xl font-bold text-white">Total Cost:</span>
                       <span className="text-2xl font-bold text-blue-400">{calculateTotalCost().toFixed(2)} SOL</span>
@@ -901,22 +972,23 @@ export default function CreateToken () {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between my-6">
+              <div className="flex justify-between gap-3 my-4 sm:my-6">
                 <button
                   onClick={handlePrevious}
                   disabled={currentStep === 1}
-                  className="flex items-center gap-2 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm lg:text-base flex-1 sm:flex-none justify-center"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
+                  <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">Previous</span>
+                  <span className="xs:hidden">Prev</span>
                 </button>
 
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors cursor-pointer"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors cursor-pointer text-xs sm:text-sm lg:text-base flex-1 sm:flex-none justify-center"
                 >
-                  {currentStep === 3 ? "Create Token" : "Next"}
-                  {currentStep !== 3 && <ChevronRight className="w-4 h-4" />}
+                  <span>{currentStep === 3 ? "Create Token" : "Next"}</span>
+                  {currentStep !== 3 && <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />}
                 </button>
               </div>
             </div>
@@ -924,11 +996,11 @@ export default function CreateToken () {
 
           {/* Token Preview */}
           <div className="lg:col-span-1">
-            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 sticky top-8">
-              <h3 className="text-xl font-bold text-white mb-6">Token Preview</h3>
+            <div className="bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-700 sticky top-8">
+              <h3 className="text-xl font-bold text-white mb-4 sm:mb-6">Token Preview</h3>
 
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+              <div className="flex items-center gap-4 mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
                   {tokenData.iconUrl ? (
                     <img
                       src={tokenData.iconUrl || "/placeholder.svg"}
@@ -945,7 +1017,7 @@ export default function CreateToken () {
                 </div>
               </div>
 
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Total Supply:</span>
                   <span className="text-white">{tokenData.totalSupply.toLocaleString()}</span>
@@ -961,30 +1033,34 @@ export default function CreateToken () {
               </div>
 
               {tokenData.description && (
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <h5 className="text-slate-400 text-sm mb-2">Description:</h5>
                   <p className="text-white text-sm">{tokenData.description}</p>
                 </div>
               )}
 
-              <div className="mb-4">
-                <h5 className="text-slate-400 text-sm mb-3">Security Features:</h5>
-                <div className="flex flex-wrap gap-2">
+              <div className="mb-3 sm:mb-4">
+                <h5 className="text-slate-400 text-sm mb-2 sm:mb-3">Security Features:</h5>
+                <div className="flex flex-wrap gap-1 sm:gap-2">
                   {tokenData.revokeFreeze && (
-                    <span className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
+                    <span className="px-2 sm:px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
                       Revoke Freeze Authority
                     </span>
                   )}
                   {tokenData.revokeMint && (
-                    <span className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">Revoke Mint Authority</span>
+                    <span className="px-2 sm:px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
+                      Revoke Mint Authority
+                    </span>
                   )}
                   {tokenData.revokeUpdate && (
-                    <span className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
+                    <span className="px-2 sm:px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
                       Revoke Update Authority
                     </span>
                   )}
                   {tokenData.boostVisibility && (
-                    <span className="px-3 py-1 bg-yellow-600 text-white text-xs rounded-full">Boost Visibility</span>
+                    <span className="px-2 sm:px-3 py-1 bg-yellow-600 text-white text-xs rounded-full">
+                      Boost Visibility
+                    </span>
                   )}
                 </div>
               </div>
