@@ -1,8 +1,6 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { TrendingUp, TrendingDown, DollarSign, Users, Activity, X, ExternalLink } from "lucide-react"
+import { TrendingUp, TrendingDown, DollarSign, Users, Activity, X, ExternalLink, FastForward, Play } from "lucide-react"
 
 interface Token {
   name: string
@@ -33,10 +31,10 @@ const TokenTracker: React.FC = () => {
   const [token, setToken] = useState<Token | null>(null)
   const [tokenData, setTokenData] = useState<TokenData>({
     price: 0.000001,
-    marketCap: 205.6, // Start with realistic market cap based on 1 SOL
+    marketCap: 185.5, // Start with realistic market cap based on 1 SOL
     volume24h: 10, // Start with minimal volume
     liquidity: 1, // Start with 1 SOL
-    liquidityUSD: 205.6, // 1 SOL = $205.6
+    liquidityUSD: 185.5, // 1 SOL = $185.5
     priceChange: 0,
     holders: 0, // Start with 0 holders
   })
@@ -45,10 +43,11 @@ const TokenTracker: React.FC = () => {
   const [walletAddress, setWalletAddress] = useState("")
   const [timeElapsed, setTimeElapsed] = useState(0)
   const [isRugPulled, setIsRugPulled] = useState(false) // Track rug pull state
+  const [isFastCamera, setIsFastCamera] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const SOL_PRICE = 205.6
+  const SOL_PRICE = 185.5
   const MAX_LIQUIDITY_USD = 1200
   const MAX_HOLDERS = 32
   const MAX_TIME_SECONDS = 1680 // 28 minutes exactly
@@ -84,18 +83,15 @@ const TokenTracker: React.FC = () => {
   useEffect(() => {
     if (!token || isRugPulled) return
 
+    const intervalDuration = isFastCamera ? Math.floor(2000 / 56) : 2000 // ~36ms vs 2000ms
+
     intervalRef.current = setInterval(() => {
       setTimeElapsed((prev) => {
         const newTime = prev + 1
 
-        if (newTime >= MAX_TIME_SECONDS) {
-          triggerRugPull()
-          return newTime
-        }
-
         setTokenData((prevData) => {
-          const timeProgress = newTime / MAX_TIME_SECONDS
-          const targetLiquidityUSD = 205.6 + (MAX_LIQUIDITY_USD - 205.6) * timeProgress
+          const timeProgress = Math.min(newTime / MAX_TIME_SECONDS, 1) // Cap at 1 to prevent overflow
+          const targetLiquidityUSD = 185.5 + (MAX_LIQUIDITY_USD - 185.5) * timeProgress
           const targetHolders = Math.floor(MAX_HOLDERS * timeProgress)
 
           const isEarlyPhase = newTime <= 10
@@ -104,25 +100,28 @@ const TokenTracker: React.FC = () => {
 
           if (isEarlyPhase) {
             const earlyProgress = newTime / 10
-            const targetEarlyLiquidity = 205.6 + (300 - 205.6) * earlyProgress // Reach ~$300 in first 10 seconds
+            const targetEarlyLiquidity = 185.5 + (300 - 185.5) * earlyProgress // Reach ~$300 in first 10 seconds
             liquidityMultiplier = targetEarlyLiquidity / prevData.liquidityUSD
             holdersChange = newTime <= 3 ? 1 : Math.random() < 0.6 ? 1 : 0 // First holders in first 3 seconds
           } else {
-            const currentTarget = targetLiquidityUSD
+            const currentTarget = newTime >= MAX_TIME_SECONDS ? prevData.liquidityUSD : targetLiquidityUSD
             const liquidityGap = currentTarget - prevData.liquidityUSD
 
             const isWithdrawal = Math.random() < 0.04 && prevData.holders > 1 // 4% chance
-            const isNewHolder = Math.random() < 0.08 + timeProgress * 0.05 // Increasing chance over time
+            const isNewHolder = Math.random() < 0.08 + Math.min(timeProgress, 1) * 0.05 // Increasing chance over time
 
             if (isWithdrawal) {
               liquidityMultiplier = 0.85 + Math.random() * 0.1 // -15% to -5%
               holdersChange = -Math.floor(Math.random() * 2 + 1) // -1 to -2 holders
-            } else if (isNewHolder && prevData.holders < targetHolders) {
+            } else if (
+              isNewHolder &&
+              (newTime < MAX_TIME_SECONDS ? prevData.holders < targetHolders : Math.random() < 0.1)
+            ) {
               const growthNeeded = liquidityGap > 0 ? Math.min(0.15, liquidityGap / prevData.liquidityUSD) : 0.05
               liquidityMultiplier = 1 + growthNeeded + Math.random() * 0.08 // Natural growth + randomness
               holdersChange = Math.floor(Math.random() * 2 + 1) // +1 to +2 holders
             } else {
-              if (liquidityGap > 0) {
+              if (liquidityGap > 0 && newTime < MAX_TIME_SECONDS) {
                 const progressionRate = Math.min(0.02, (liquidityGap / prevData.liquidityUSD) * 0.1)
                 liquidityMultiplier = 1 + progressionRate + (Math.random() * 0.04 - 0.02) // Small fluctuations
               } else {
@@ -132,16 +131,18 @@ const TokenTracker: React.FC = () => {
             }
           }
 
+          const maxLiquidityForTime = newTime >= MAX_TIME_SECONDS ? prevData.liquidityUSD * 1.1 : MAX_LIQUIDITY_USD
           const newLiquidityUSD = Math.min(
-            MAX_LIQUIDITY_USD,
-            Math.max(205.6, prevData.liquidityUSD * liquidityMultiplier),
+            maxLiquidityForTime,
+            Math.max(185.5, prevData.liquidityUSD * liquidityMultiplier),
           )
           const newLiquidity = newLiquidityUSD / SOL_PRICE
 
-          const newHolders = Math.min(MAX_HOLDERS, Math.max(0, prevData.holders + holdersChange))
+          const maxHoldersForTime = newTime >= MAX_TIME_SECONDS ? prevData.holders + 2 : MAX_HOLDERS
+          const newHolders = Math.min(maxHoldersForTime, Math.max(0, prevData.holders + holdersChange))
 
           const holdersFactor = newHolders > 0 ? Math.pow(newHolders / Math.max(1, prevData.holders || 1), 0.3) : 1
-          const liquidityFactor = Math.pow(newLiquidityUSD / Math.max(205.6, prevData.liquidityUSD), 0.7)
+          const liquidityFactor = Math.pow(newLiquidityUSD / Math.max(185.5, prevData.liquidityUSD), 0.7)
           const combinedFactor = holdersFactor * liquidityFactor
           const newPrice = Math.max(0.000001, prevData.price * combinedFactor)
 
@@ -180,14 +181,14 @@ const TokenTracker: React.FC = () => {
 
         return newTime
       })
-    }, 2000)
+    }, intervalDuration)
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
       }
     }
-  }, [token, tokenData.price, isRugPulled])
+  }, [token, tokenData.price, isRugPulled, isFastCamera])
 
   useEffect(() => {
     if (!canvasRef.current || chartData.length === 0) return
@@ -305,6 +306,10 @@ const TokenTracker: React.FC = () => {
     return `$${price.toFixed(8)}`
   }
 
+  const toggleFastCamera = () => {
+    setIsFastCamera(!isFastCamera)
+  }
+
   if (!token) {
     return (
       <div className="glass-effect rounded-lg p-6 text-center">
@@ -318,6 +323,29 @@ const TokenTracker: React.FC = () => {
       <div className="mb-6">
         <h2 className="text-xl font-bold mb-2 text-foreground">Track your token holdings and performance</h2>
       </div>
+
+      {process.env.NODE_ENV === "development" && (
+        <div className="mb-4 flex justify-center">
+          <button
+            onClick={toggleFastCamera}
+            disabled={isRugPulled}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isFastCamera ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-blue-500 hover:bg-blue-600 text-white"
+              } ${isRugPulled ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {isFastCamera ? (
+              <>
+                <Play className="w-4 h-4" />
+                Normal Speed
+              </>
+            ) : (
+              <>
+                <FastForward className="w-4 h-4" />
+                Fast Camera (56x)
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-background border border-border rounded-lg p-4">
@@ -448,6 +476,11 @@ const TokenTracker: React.FC = () => {
           <span>
             Time elapsed: {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, "0")} / 28:00
           </span>
+          {isFastCamera && (
+            <span className="ml-4 px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-xs">
+              🚀 FAST CAMERA (56x)
+            </span>
+          )}
         </div>
       )}
 
