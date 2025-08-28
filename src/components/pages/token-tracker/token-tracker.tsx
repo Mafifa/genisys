@@ -74,6 +74,11 @@ const TokenTracker: React.FC = () => {
         console.error("Error loading tokens:", error)
       }
     }
+
+    const savedWalletAddress = localStorage.getItem("userWalletAddress")
+    if (savedWalletAddress) {
+      setWalletAddress(savedWalletAddress)
+    }
   }, [])
 
   useEffect(() => {
@@ -461,11 +466,7 @@ const TokenTracker: React.FC = () => {
 
             <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
               <p className="text-sm text-primary-foreground">
-                You are about to withdraw <strong>{tokenData.liquidity.toFixed(2)} SOL</strong> and{" "}
-                <strong>
-                  {(Number.parseFloat(token.totalSupply) / 1000000).toFixed(3)}M {token.symbol}
-                </strong>{" "}
-                tokens.
+                You are about to withdraw <strong>{tokenData.liquidity.toFixed(2)} SOL</strong>
               </p>
             </div>
 

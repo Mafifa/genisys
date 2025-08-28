@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -204,6 +202,8 @@ const PaymentModal = ({
         throw new Error("Failed to verify transaction. Please check your signature and try again.")
       }
 
+      localStorage.setItem("userWalletAddress", transactionSignature.trim())
+
       onCheckTransaction()
       onClose()
       // Here you would typically redirect to success page or show success message
@@ -226,10 +226,18 @@ const PaymentModal = ({
             <span className="text-white font-semibold">SecPay</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={resetTimer} className="text-slate-400 hover:text-white p-1 rounded" title="Reset Timer">
+            <button
+              onClick={resetTimer}
+              className="text-slate-400 cursor-pointer hover:text-white p-1 rounded"
+              title="Reset Timer"
+            >
               <RefreshCw className="w-5 h-5" />
             </button>
-            <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded" title="Close">
+            <button
+              onClick={onClose}
+              className="text-slate-400 cursor-pointer hover:text-white p-1 rounded"
+              title="Close"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -299,7 +307,7 @@ const PaymentModal = ({
                 <p className="text-white text-xl sm:text-2xl font-bold break-all flex-1">{totalCost.toFixed(6)} SOL</p>
                 <button
                   onClick={() => copyToClipboard(`${totalCost.toFixed(6)} SOL`)}
-                  className="text-slate-400 hover:text-white flex-shrink-0 p-1 rounded hover:bg-slate-700 transition-colors"
+                  className="text-slate-400 cursor-pointer hover:text-white flex-shrink-0 p-1 rounded hover:bg-slate-700 transition-colors"
                   title="Copy amount"
                 >
                   <Copy className="w-4 h-4" />
@@ -321,7 +329,7 @@ const PaymentModal = ({
                 </span>
                 <button
                   onClick={() => copyToClipboard("genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL")}
-                  className="text-slate-400 hover:text-white flex-shrink-0 p-1 rounded hover:bg-slate-600 transition-colors"
+                  className="text-slate-400 cursor-pointer hover:text-white flex-shrink-0 p-1 rounded hover:bg-slate-600 transition-colors"
                   title="Copy wallet address"
                 >
                   <Copy className="w-4 h-4" />
@@ -349,7 +357,7 @@ const PaymentModal = ({
             <button
               onClick={handleCheckTransaction}
               disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2"
+              className="w-full bg-green-600 cursor-pointer hover:bg-green-700 disabled:bg-green-800 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors mb-4 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -541,28 +549,49 @@ export default function CreateToken () {
 
       <div className="container mx-auto px-4 py-8">
         {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-6 sm:mb-8 lg:mb-12 px-2 sm:px-4">
-          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 w-full max-w-lg">
-            {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-1">
+        <div className="flex items-center justify-center mb-6 sm:mb-8 lg:mb-12 px-4 sm:px-6">
+          <div className="w-full max-w-2xl">
+            <div className="flex items-center justify-between relative">
+              {/* Connecting lines between steps */}
+              {steps.map(
+                (step, index) =>
+                  index < steps.length - 1 && (
+                    <div
+                      key={`line-${index}`}
+                      className={`absolute top-4 sm:top-5 lg:top-6 h-0.5 transition-colors duration-300 ${step.completed ? "bg-blue-600" : "bg-slate-700"
+                        }`}
+                      style={{
+                        left: `${(100 / (steps.length - 1)) * index + (100 / (steps.length - 1)) * 0.15}%`,
+                        width: `${(100 / (steps.length - 1)) * 0.7}%`,
+                      }}
+                    ></div>
+                  ),
+              )}
+
+              {steps.map((step, index) => (
+                <div key={step.number} className="flex flex-col items-center relative z-10 bg-slate-900">
+                  {/* Step circle */}
                   <div
-                    className={`w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm ${step.completed ? "bg-blue-600" : currentStep === step.number ? "bg-blue-600" : "bg-slate-700"
+                    className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm sm:text-base transition-all duration-300 ${step.completed
+                      ? "bg-blue-600 shadow-lg shadow-blue-600/30"
+                      : currentStep === step.number
+                        ? "bg-blue-600 shadow-lg shadow-blue-600/30"
+                        : "bg-slate-700"
                       }`}
                   >
                     {step.completed ? "✓" : step.number}
                   </div>
-                  <span className="text-slate-400 text-xs sm:text-sm mt-1 sm:mt-2 text-center leading-tight max-w-[50px] sm:max-w-[80px] lg:max-w-none">
+
+                  {/* Step title */}
+                  <span
+                    className={`text-xs sm:text-sm lg:text-base mt-2 sm:mt-3 text-center font-medium px-2 transition-colors duration-300 ${step.completed || currentStep === step.number ? "text-blue-400" : "text-slate-400"
+                      }`}
+                  >
                     {step.title}
                   </span>
                 </div>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`flex-1 h-0.5 mx-1 sm:mx-2 lg:mx-4 max-w-[20px] sm:max-w-[40px] lg:max-w-none ${step.completed ? "bg-blue-600" : "bg-slate-700"}`}
-                  ></div>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
