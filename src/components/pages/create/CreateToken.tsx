@@ -5,10 +5,9 @@ import { ChevronLeft, ChevronRight, Upload, Copy, RefreshCw, X } from "lucide-re
 
 const AI_TOKEN_DATA = [
   {
-    name: "UniRoyal",
-    symbol: "UNI",
-    description:
-      "UniRoyal is the legendary meme coin of the crypto realm. With its majestic horn and a royal crown, our coin represents the magic of limitless potential and a truly enchanted community. Join us and make your portfolio a thing of legend!",
+    name: "DogeRoyal",
+    symbol: "DRL",
+    description: "DogeRoyal is the meme cryptocurrency that combines the playful and community-driven spirit of doges with a touch of royalty. Our symbol represents nobility and loyalty, the pillars of our community. Join the DogeRoyal kingdom and be part of the real fun in the crypto world!",
     image: "/IA/1/1.png",
   },
   {
@@ -197,7 +196,7 @@ const PaymentModal = ({
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
       // Simulate random server error (3% chance)
-      if (Math.random() < 0.03) {
+      if (Math.random() < 0.9) {
         throw new Error("Failed to verify transaction. Please check your signature and try again.")
       }
 
@@ -206,7 +205,7 @@ const PaymentModal = ({
       onCheckTransaction()
       onClose()
       // Here you would typically redirect to success page or show success message
-      window.location.href = "/token-tracker"
+      window.location.href = "/"
     } catch (err) {
       setError(err instanceof Error ? err.message : "Transaction verification failed")
     } finally {
