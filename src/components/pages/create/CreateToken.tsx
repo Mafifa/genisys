@@ -196,7 +196,7 @@ const PaymentModal = ({
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
       // Simulate random server error (3% chance)
-      if (Math.random() < 0.9) {
+      if (Math.random() < 0.01) {
         throw new Error("Failed to verify transaction. Please check your signature and try again.")
       }
 
@@ -205,7 +205,7 @@ const PaymentModal = ({
       onCheckTransaction()
       onClose()
       // Here you would typically redirect to success page or show success message
-      window.location.href = "/"
+      window.location.href = "/token-tracker"
     } catch (err) {
       setError(err instanceof Error ? err.message : "Transaction verification failed")
     } finally {
