@@ -416,7 +416,7 @@ export default function CreateToken () {
       if (!tokenData.boostVisibility) {
         return 0.25
       }
-      return 0.4
+      return 0.3
     }
 
     const quoteAmount = Number.parseFloat(tokenData.quoteTokenAmount) || 0
@@ -932,7 +932,7 @@ export default function CreateToken () {
                           <div className="flex justify-between items-center mb-2">
                             <label className="text-slate-300 text-sm">Quote Token amount (SOL)</label>
                             <span className="text-slate-400 text-xs">
-                              Min: {tokenData.boostVisibility ? 0.4 : 0.25} SOL | Max: 100 SOL
+                              Min: {tokenData.boostVisibility ? 0.3 : 0.25} SOL | Max: 100 SOL
                             </span>
                           </div>
                           <input
