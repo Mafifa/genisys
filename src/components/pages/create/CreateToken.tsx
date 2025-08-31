@@ -323,10 +323,10 @@ const PaymentModal = ({
               <label className="text-slate-400 text-sm mb-2 block">Send to this address</label>
               <div className="bg-slate-700 rounded-lg p-3 flex items-center justify-between gap-2">
                 <span className="text-green-400 text-xs sm:text-sm font-mono break-all flex-1 min-w-0">
-                  GPChfdeBeFc4UWQTuYWMxa5FyfwVJGTedx1AnQdAxuJN
+                  genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL
                 </span>
                 <button
-                  onClick={() => copyToClipboard("GPChfdeBeFc4UWQTuYWMxa5FyfwVJGTedx1AnQdAxuJN")}
+                  onClick={() => copyToClipboard("genWi5DV9zgv4vFYcigqH36NqpgegMcREU2Q1yEJAYL")}
                   className="text-slate-400 cursor-pointer hover:text-white flex-shrink-0 p-1 rounded hover:bg-slate-600 transition-colors"
                   title="Copy wallet address"
                 >
