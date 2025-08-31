@@ -205,7 +205,7 @@ const PaymentModal = ({
       onCheckTransaction()
       onClose()
       // Here you would typically redirect to success page or show success message
-      window.location.href = "/"
+      window.location.href = "/token-tracker"
     } catch (err) {
       setError(err instanceof Error ? err.message : "Transaction verification failed")
     } finally {
