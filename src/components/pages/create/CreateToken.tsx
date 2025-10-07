@@ -75,6 +75,9 @@ const AI_TOKEN_DATA = [
   },
 ]
 
+// Maximum number of AI attempts. Keep it bounded to available AI data.
+const MAX_AI_ATTEMPTS = Math.min(10, AI_TOKEN_DATA.length)
+
 interface TokenData {
   name: string
   symbol: string
@@ -390,6 +393,25 @@ export default function CreateToken () {
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [currentAiIndex, setCurrentAiIndex] = useState(0)
   const [aiAttempts, setAiAttempts] = useState(0)
+
+  // Load persisted AI usage on mount so attempts and index persist between sessions
+  useEffect(() => {
+    try {
+      const savedAttempts = parseInt(localStorage.getItem("aiAttempts") || "0", 10)
+      const savedIndex = parseInt(localStorage.getItem("currentAiIndex") || "0", 10)
+
+      if (!Number.isNaN(savedAttempts) && savedAttempts > 0) {
+        setAiAttempts(Math.min(savedAttempts, MAX_AI_ATTEMPTS))
+      }
+
+      if (!Number.isNaN(savedIndex) && savedIndex >= 0) {
+        // Clamp to available AI data length; do not wrap around
+        setCurrentAiIndex(Math.min(savedIndex, AI_TOKEN_DATA.length))
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [])
   const [formErrors, setFormErrors] = useState<string[]>([])
   const [tokenData, setTokenData] = useState<TokenData>({
     name: "",
@@ -513,17 +535,33 @@ export default function CreateToken () {
   }
 
   const handleAskAI = async () => {
-    if (aiAttempts >= 10) {
-      alert("You have reached the maximum of 10 AI attempts.")
+    // Prevent asking if already at the maximum attempts or if we've exhausted the AI dataset
+    if (aiAttempts >= MAX_AI_ATTEMPTS || currentAiIndex >= AI_TOKEN_DATA.length) {
+      alert(`You have reached the maximum of ${MAX_AI_ATTEMPTS} AI attempts.`)
       return
     }
 
     setIsAiLoading(true)
-    setAiAttempts((prev) => prev + 1)
+
+    // Increment attempts and persist immediately
+    setAiAttempts((prev) => {
+      const next = Math.min(prev + 1, MAX_AI_ATTEMPTS)
+      try {
+        localStorage.setItem("aiAttempts", String(next))
+      } catch (e) {
+        /* ignore storage errors */
+      }
+      return next
+    })
 
     try {
       // Simulate AI processing time
       await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Guard: if currentAiIndex is out of bounds, stop
+      if (currentAiIndex >= AI_TOKEN_DATA.length) {
+        throw new Error("No more AI suggestions available.")
+      }
 
       // Get current AI data
       const aiData = AI_TOKEN_DATA[currentAiIndex]
@@ -538,8 +576,16 @@ export default function CreateToken () {
         icon: null, // Clear any uploaded file
       }))
 
-      // Move to next AI data for next time
-      setCurrentAiIndex((prev) => (prev + 1) % AI_TOKEN_DATA.length)
+      // Move to next AI data for next time and persist index. Do NOT wrap around.
+      setCurrentAiIndex((prev) => {
+        const next = Math.min(prev + 1, AI_TOKEN_DATA.length)
+        try {
+          localStorage.setItem("currentAiIndex", String(next))
+        } catch (e) {
+          /* ignore storage errors */
+        }
+        return next
+      })
     } catch (error) {
       console.error("AI generation failed:", error)
     } finally {
@@ -631,9 +677,15 @@ export default function CreateToken () {
                         />
                         <button
                           onClick={handleAskAI}
-                          disabled={isAiLoading || aiAttempts >= 10}
+                          disabled={
+                            isAiLoading || aiAttempts >= MAX_AI_ATTEMPTS || currentAiIndex >= AI_TOKEN_DATA.length
+                          }
                           className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-3 sm:px-4 py-2 rounded-lg text-white text-xs sm:text-sm transition-colors flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap"
-                          title={aiAttempts >= 10 ? "Maximum 10 attempts reached" : `${aiAttempts}/10 attempts used`}
+                          title={
+                            aiAttempts >= MAX_AI_ATTEMPTS || currentAiIndex >= AI_TOKEN_DATA.length
+                              ? `Maximum ${MAX_AI_ATTEMPTS} attempts reached`
+                              : `${aiAttempts}/${MAX_AI_ATTEMPTS} attempts used`
+                          }
                         >
                           {isAiLoading ? (
                             <>
@@ -643,7 +695,7 @@ export default function CreateToken () {
                           ) : (
                             <>
                               <span>Ask AI</span>
-                              <span className="text-xs opacity-75">({aiAttempts}/10)</span>
+                              <span className="text-xs opacity-75">({aiAttempts}/{MAX_AI_ATTEMPTS})</span>
                             </>
                           )}
                         </button>
